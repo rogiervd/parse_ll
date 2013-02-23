@@ -1,0 +1,7 @@
+# Tests for parse_ll library.
+
+build-project support ;
+build-project core ;
+build-project number ;
+build-project debug ;
+

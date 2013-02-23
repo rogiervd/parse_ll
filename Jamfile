@@ -1,0 +1,13 @@
+project /parse_ll :
+    requirements
+    <library>/range//range
+    <library>/rime//rime
+    <library>/meta//meta
+    ;
+
+# Declare target /parse_ll//parse_ll as a header-only library.
+alias parse_ll : : : :
+    <include>include
+    <cxxflags>"-std=c++0x"
+    ;
+

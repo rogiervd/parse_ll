@@ -1,0 +1,216 @@
+/*
+Copyright 2012 Rogier van Dalen.
+
+This file is part of Rogier van Dalen's LL Parser library for C++.
+
+This library is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+Trace the steps inside parsers while parsing.
+*/
+
+#ifndef PARSE_LL_DEBUG_TRACE_HPP_INCLUDED
+#define PARSE_LL_DEBUG_TRACE_HPP_INCLUDED
+
+#include <cassert>
+#include <memory>
+#include <vector>
+
+#include "../core/detail/directive.hpp"
+
+#include "../core/no_skip.hpp"
+
+namespace parse_ll {
+
+namespace parse_policy {
+
+    /**
+    This parse function policy that notifies an observer every time something
+    is parsed and somthing is returned.
+    This is useful for debugging the parser.
+
+    However, lazy parsers are a problem.
+    They do no necessarily apply their sub-parsers immediately, but potentially
+    later.
+    What they do is copy the parse function, including any policies, so they can
+    call it later.
+    This will yield spurious trace notifications.
+    To prevent these, this class needs to detect when it should and when it
+    shouldn't generate trace messages.
+
+    It therefore keeps a list of parser depths as shared_ptr's.
+    It also keeps a weak_ptr to the greatest depth of the "parent" if it is
+    copy-constructed.
+    When the "parent" finishes at that depth, it releases the corresponding
+    shared_ptr.
+    Its copy can detect this by checking whether its parent_depth is expired.
+    In that case, it is being called as part of a lazy parse and can be ignored.
+
+    It is not turtles all the way down: wrap_trace (which is in the parse, so
+    it must be kept alive as long as parsing is happening) holds the root
+    pointer to symbolic depth -1.
+
+    To get a complete parse, succeed() and rest() are always called explicitly.
+    This may still yield some spurious not.
+    */
+    template <class OriginalPolicy, class Observer, class Stop>
+        struct trace_policy
+    : public OriginalPolicy
+    {
+        Observer observer;
+        Stop stop;
+
+        mutable bool inhibit;
+        std::weak_ptr <int> parent_depth;
+        mutable std::vector <std::shared_ptr <int>> depths;
+
+        bool inhibited() const {
+            return inhibit || parent_depth.expired();
+        }
+
+        int current_depth() const {
+            assert (!inhibited());
+            if (depths.empty())
+                return *parent_depth.lock();
+            else
+                return *depths.back();
+        }
+
+    public:
+        explicit trace_policy (OriginalPolicy const & original_policy_,
+            Observer const & observer, Stop const & stop,
+            std::shared_ptr <int> const & root_depth)
+        : OriginalPolicy (original_policy_), observer (observer), stop (stop),
+            inhibit (false), parent_depth (root_depth) {}
+
+        trace_policy (trace_policy const & other)
+        : OriginalPolicy (other), observer (other.observer), stop (other.stop),
+          inhibit (other.inhibit) {
+            if (other.depths.empty())
+                // Simple copy
+                parent_depth = other.parent_depth;
+            else
+                // Dependent copy
+                parent_depth = other.depths.back();
+        }
+
+        ~trace_policy() {
+            /*
+            I'm not sure this assertion can never be triggered normally.
+            It can be triggered during exception unwinding, which is confusing.
+            */
+            // assert (parent_depth.expired() || depths.empty());
+        }
+
+        template <class WrapperParse, class Parser, class Input>
+            auto apply_parse (
+                WrapperParse const & wrapper_parse,
+                Parser const & parser, Input const & input) const
+        -> /*decltype (std::declval <OriginalPolicy const>().apply_parse (
+            wrapper_parse, parser, input))*/
+            typename callable::apply_parse_type <
+                OriginalPolicy, WrapperParse, Parser, Input>::type
+        {
+            if (inhibited())
+                return original_policy().apply_parse (
+                    wrapper_parse, parser, input);
+            else {
+                int depth = current_depth() + 1;
+                depths.push_back (std::make_shared <int> (depth));
+                // Notify observer.
+                observer.start_parse (depth, parser, input);
+
+                if (stop (parser))
+                    inhibit = true;
+
+                auto outcome = original_policy().apply_parse (
+                    wrapper_parse, parser, input);
+
+                if (inhibit)
+                    inhibit = false;
+
+                // Notify observer.
+                if (success (outcome)) {
+                    // Run sub-parsers through the input once.
+                    Input remaining = rest (outcome);
+                    // Inhibit any further notifications.
+                    depths.pop_back();
+                    observer.success (depth, parser, input, remaining, outcome);
+                } else {
+                    depths.pop_back();
+                    observer.no_success (depth, parser, input);
+                }
+                return std::move (outcome);
+            }
+        }
+
+        OriginalPolicy const & original_policy() const { return *this; }
+    };
+
+    template <class Observer, class Stop> struct wrap_trace {
+        Observer observer;
+        Stop stop;
+        std::shared_ptr <int> root_depth;
+    public:
+        wrap_trace (Observer const & observer, Stop const & stop)
+        : observer (observer), stop (stop),
+            root_depth (std::make_shared <int> (-1)) {}
+
+        template <class OriginalPolicy> auto
+        operator() (OriginalPolicy const & original_policy) const
+        RETURNS (trace_policy <OriginalPolicy, Observer, Stop> (
+            original_policy, observer, stop, root_depth));
+    };
+
+    struct no_stop {
+        template <class Parser>
+        bool operator() (Parser const &) const { return false; }
+    };
+
+    struct stop_at_no_skip {
+        template <class Parser>
+        bool operator() (Parser const &) const { return false; }
+
+        template <class SubParser> bool operator() (
+            change_policy <SubParser, convert_policy_no_skip> const &) const
+        { return true; }
+    };
+
+} // namespace parse_policy
+
+/**
+Let an observer know about the progress of a parser.
+This is useful as instrumentation to a parser for debugging why it does or does
+not parse a particular input.
+Spurious trace messages from lazy parsers are inhibited.
+This does make this policy quite slow.
+It is only for debugging.
+*/
+template <class Observer, class Stop> inline
+    change_policy_directive <parse_policy::wrap_trace <Observer, Stop>>
+    trace (Observer const & observer, Stop const & stop)
+{
+    return change_policy_directive <parse_policy::wrap_trace <Observer, Stop>> (
+        parse_policy::wrap_trace <Observer, Stop> (observer, stop));
+}
+
+template <class Observer> inline auto
+    trace (Observer const & observer)
+RETURNS (trace (observer, parse_policy::no_stop()));
+
+} // namespace parse_ll
+
+#endif  // PARSE_LL_DEBUG_TRACE_HPP_INCLUDED
+

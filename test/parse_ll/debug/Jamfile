@@ -1,0 +1,4 @@
+alias "debug" :
+    [ run trace.cpp ]
+    ;
+
