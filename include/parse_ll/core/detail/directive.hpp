@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /** \file
 Directives usually change the parse.
-This defines a core class that does just that.
+This defines a base class that does just that.
 */
 
 #ifndef PARSE_LL_BASE_DETAIL_DIRECTIVE_HPP_INCLUDED

@@ -85,7 +85,7 @@ Rules ignore properties of the parse, such as skip parsers, they are called
 with.
 
 \internal
-This class works by keeping a pointer to an object of a virtual core class,
+This class works by keeping a pointer to an object of a virtual base class,
 detail::polymorphic_parser.
 The implementation, of the non-abstract derived class
 detail::polymorphic_parser_implementation is only known at the time of

@@ -117,6 +117,7 @@ namespace operation {
     */
     template <class Outcome, typename Enable = void>
         struct success : unimplemented {};
+
     /**
     Implementation of "output()".
     Specialise this for every Outcome class.
@@ -129,6 +130,7 @@ namespace operation {
         struct rest : unimplemented {};
 
     namespace output_detail {
+
         template <class Outcome> struct output_result {
             typedef decltype (std::declval <output <Outcome>>() (
                 std::declval <Outcome>())) type;
@@ -142,7 +144,7 @@ namespace operation {
             struct output_if_void
         { void operator() (Outcome const &) {} };
 
-    } // namespace detail
+    } // namespace output_detail
 
     /**
     Check whether the normal output returns void.
@@ -197,7 +199,8 @@ namespace callable {
     // std::declval <Policy>().apply_parse (...).
     // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48051
     template <class Policy, class WrappedParse, class Parser, class Input>
-        struct apply_parse_type {
+        struct apply_parse_type
+    {
         Policy policy;
         typedef decltype (policy.apply_parse (std::declval <WrappedParse>(),
             std::declval <Parser>(), std::declval <Input>())) type;
