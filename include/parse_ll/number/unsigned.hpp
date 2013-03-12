@@ -47,11 +47,11 @@ Turn a range of values for digits into an unsigned integer.
 */
 template <class Result> struct collect_integer {
     template <class DigitValues>
-        Result operator() (DigitValues const & digit_values) const
+        Result operator() (DigitValues values) const
     {
         // Assume an assignable homogeneous range.
         Result result = Result();
-        for (auto values = digit_values; !::range::empty (values);
+        for (; !::range::empty (values);
             values = ::range::drop (values))
         {
             Result new_result = result * 10 + ::range::first (values);

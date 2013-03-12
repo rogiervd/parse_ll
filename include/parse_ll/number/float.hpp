@@ -58,9 +58,8 @@ template <typename Result> struct convert_float {
 
 template <typename Result> class convert_mantissa {
     template <class Digits>
-    Result add_digits (Result current, Digits const & data) const {
-        for (auto digits = data;
-                !::range::empty (digits); digits = ::range::drop (digits))
+    Result add_digits (Result current, Digits digits) const {
+        for (; !::range::empty (digits); digits = ::range::drop (digits))
             current = current * 10 + ::range::first (digits);
         return current;
     }
