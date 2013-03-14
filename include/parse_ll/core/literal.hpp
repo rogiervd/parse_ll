@@ -30,7 +30,8 @@ Define a parser that accepts a literal and does not output anything.
 
 #include "fwd.hpp"
 #include "core.hpp"
-#include "outcome.hpp"
+#include "outcome/failed.hpp"
+#include "outcome/explicit.hpp"
 
 namespace parse_ll {
 
@@ -60,7 +61,7 @@ namespace operation {
     template <class Parse, class Literal, class Input>
         struct parse <Parse, literal_parser <Literal>, Input>
     {
-        simple_outcome <void, Input> operator() (Parse const & parse,
+        explicit_outcome <void, Input> operator() (Parse const & parse,
             literal_parser <Literal> const & parser, Input input) const
         {
             using ::range::empty; using ::range::first; using ::range::drop;
@@ -73,7 +74,7 @@ namespace operation {
             }
             if (empty (literal))
                 // We went through the whole literal: success.
-                return simple_outcome <void, Input> (input);
+                return explicit_outcome <void, Input> (input);
             else
                 return failed();
         }

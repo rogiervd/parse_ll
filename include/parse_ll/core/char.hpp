@@ -24,11 +24,13 @@ Define a parser that parses one character.
 #ifndef PARSE_LL_CHAR_HPP_INCLUDED
 #define PARSE_LL_CHAR_HPP_INCLUDED
 
+#include <boost/optional.hpp>
+
 #include "range/core.hpp"
 
 #include "fwd.hpp"
 #include "core.hpp"
-#include "outcome.hpp"
+#include "outcome/failed.hpp"
 
 namespace parse_ll {
 

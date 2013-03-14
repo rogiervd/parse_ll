@@ -25,7 +25,8 @@ Defines an "end" parser, which only succeeds at the end of the input.
 #define PARSE_LL_BASE_END_HPP_INCLUDED
 
 #include "core.hpp"
-#include "outcome.hpp"
+#include "outcome/explicit.hpp"
+#include "outcome/failed.hpp"
 
 #include "range/core.hpp"
 
@@ -38,10 +39,10 @@ namespace operation {
 
     template <class Parse, class Input> struct parse <Parse, end_parser, Input>
     {
-        simple_outcome <void, Input>
+        explicit_outcome <void, Input>
             operator() (Parse const &, end_parser, Input const & input) const {
             if (::range::empty (input))
-                return simple_outcome <void, Input> (input);
+                return explicit_outcome <void, Input> (input);
             else
                 return failed();
         }

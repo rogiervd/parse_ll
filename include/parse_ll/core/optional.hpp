@@ -31,7 +31,6 @@ Define an optional parser, which parses something zero or one time.
 
 #include "fwd.hpp"
 #include "core.hpp"
-#include "outcome.hpp"
 
 namespace parse_ll {
 
@@ -56,7 +55,7 @@ So you'd imagine a variant<sub_outcome, Input> (and maybe void?) but even that
 duplicates information: sub_outcome contains information about whether it was
 successful, whereas in this context the variant already indicates that.
 So maybe the current implementation should be used if the sub_parser's outcome
-is simple_outcome and the new implementation otherwise?
+is explicit_outcome and the new implementation otherwise?
 Or outcomes could be asserted successful and shed some of their weight...?
 */
 template <class SubParser> struct optional_parser

@@ -25,6 +25,8 @@ does not succeed.
 #ifndef PARSE_LL_DIFFERENCE_HPP_INCLUDED
 #define PARSE_LL_DIFFERENCE_HPP_INCLUDED
 
+#include <boost/optional.hpp>
+
 #include "fwd.hpp"
 #include "core.hpp"
 

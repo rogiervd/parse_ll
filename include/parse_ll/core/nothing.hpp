@@ -27,7 +27,7 @@ Define a parser that parses nothing of the input and always succeeds.
 #include "utility/returns.hpp"
 
 #include "core.hpp"
-#include "outcome.hpp"
+#include "outcome/successful.hpp"
 
 namespace parse_ll {
 

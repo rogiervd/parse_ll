@@ -41,7 +41,7 @@ namespace detail {
     public:
         virtual ~polymorphic_parser() {}
 
-        typedef simple_outcome <Output, Input> outcome_type;
+        typedef explicit_outcome <Output, Input> outcome_type;
 
         virtual outcome_type parse_from (Input const & input) const
             = 0;
@@ -113,7 +113,7 @@ namespace operation {
         struct parse <Parse, rule <RuleInput, Output>, ActualInput>
     {
         // Always generate a return type, to prevent strange errors.
-        simple_outcome <Output, ActualInput> operator() (Parse const &,
+        explicit_outcome <Output, ActualInput> operator() (Parse const &,
             rule <RuleInput, Output> const & parser, ActualInput const & input)
                 const
         {

@@ -37,10 +37,25 @@ template <class Input, class Output = void> struct rule;
 struct named_parser;
 
 namespace parse_policy {
+
     struct direct;
     template <class OriginalParse> struct no_skip_policy;
     template <class SkipParser, class OriginalParse> struct skip_policy;
+
 } // namespace parse_policy
+
+namespace operation {
+
+    template <class Parser, typename Enable> struct describe;
+    template <class Outcome, typename Enable> struct success;
+    template <class Outcome, typename Enable> struct output;
+    template <class Outcome, typename Enable> struct rest;
+
+    struct unimplemented {};
+    template <class Operation> struct is_implemented
+    : boost::mpl::not_ <std::is_base_of <unimplemented, Operation> > {};
+
+} // namespace operation
 
 } // namespace parse_ll
 

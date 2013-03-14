@@ -53,11 +53,11 @@ namespace parse_ll { namespace operation {
     template <class Parse, class Input>
         struct parse <Parse, silly_skip_parser, Input>
     {
-        parse_ll::simple_outcome <void, Input>
+        parse_ll::explicit_outcome <void, Input>
             operator() (Parse const & parse, silly_skip_parser const &,
                 Input const & input) const
         {
-            return parse_ll::simple_outcome <void, Input> (
+            return parse_ll::explicit_outcome <void, Input> (
                 parse.skip (input));
         }
     };

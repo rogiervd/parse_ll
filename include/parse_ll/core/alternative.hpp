@@ -115,7 +115,7 @@ namespace operation {
         typedef decltype (true ?
             ::parse_ll::output (std::declval <outcome_1_type>()) :
             ::parse_ll::output (std::declval <outcome_2_type>())) output_type;
-        typedef simple_outcome <output_type, Input> outcome_type;
+        typedef explicit_outcome <output_type, Input> outcome_type;
 
         outcome_type operator() (Parse const & parse,
                 alternative_parser <Parser1, Parser2> const & parser,

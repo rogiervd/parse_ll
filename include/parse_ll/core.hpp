@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Rogier van Dalen.
+Copyright 2012, 2013 Rogier van Dalen.
 
 This file is part of Rogier van Dalen's LL Parser library for C++.
 
@@ -25,8 +25,8 @@ Include everything from "core".
 #define PARSE_LL_BASE_HPP_INCLUDED
 
 #include "core/fwd.hpp"
-#include "core/core.hpp"
 #include "core/outcome.hpp"
+#include "core/core.hpp"
 
 // Terminal parsers
 #include "core/literal.hpp"
