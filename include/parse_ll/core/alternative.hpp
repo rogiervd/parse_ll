@@ -25,6 +25,8 @@ parsers until one of them succeeds.
 #ifndef PARSE_LL_ALTERNATIVE_HPP_INCLUDED
 #define PARSE_LL_ALTERNATIVE_HPP_INCLUDED
 
+#include <type_traits>
+
 #include "utility/returns.hpp"
 
 #include "fwd.hpp"
@@ -112,9 +114,10 @@ namespace operation {
         typedef typename detail::outcome_output <outcome_2_type>::type
             output_2_type;
 
-        typedef decltype (true ?
-            ::parse_ll::output (std::declval <outcome_1_type>()) :
-            ::parse_ll::output (std::declval <outcome_2_type>())) output_type;
+        typedef typename std::decay <decltype (true ?
+                ::parse_ll::output (std::declval <outcome_1_type>()) :
+                ::parse_ll::output (std::declval <outcome_2_type>()))
+            >::type output_type;
         typedef explicit_outcome <output_type, Input> outcome_type;
 
         outcome_type operator() (Parse const & parse,

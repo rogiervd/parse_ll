@@ -37,12 +37,21 @@ namespace parse_ll {
 /**
 Outcome class that is always successful and keeps the output and the input
 directly in memory.
+The type Input must not be a reference or const, and must be assignable.
+The type Output must not be a reference or const, and must be assignable.
+Alternatively, Output can be of type "void".
+They are stored directly.
 */
 template <class Output, class Input> struct successful {
     static_assert (!std::is_const <Input>::value,
         "Input should not be a reference or const");
     static_assert (!std::is_reference <Input>::value,
         "Input should not be a reference or const");
+
+    static_assert (!std::is_const <Output>::value,
+        "Output should not be a reference or const");
+    static_assert (!std::is_reference <Output>::value,
+        "Output should not be a reference or const");
 
     Output output;
     Input rest;
@@ -112,9 +121,10 @@ namespace operation {
     template <class Output, class Input>
         struct output <successful <Output, Input>>
     {
-        Output operator() (successful <Output, Input> const & outcome) const
+        Output const & operator() (successful <Output, Input> const & outcome)
+            const
         { return outcome.output; }
-        Output operator() (successful <Output, Input> && outcome) const
+        Output && operator() (successful <Output, Input> && outcome) const
         { return std::move (outcome.output); }
     };
     // void output: not implemented since this should never be called.
@@ -124,9 +134,10 @@ namespace operation {
     template <class Output, class Input>
         struct rest <successful <Output, Input>>
     {
-        Input operator() (successful <Output, Input> const & outcome) const
+        Input const & operator() (successful <Output, Input> const & outcome)
+            const
         { return outcome.rest; }
-        Input operator() (successful <Output, Input> && outcome) const
+        Input && operator() (successful <Output, Input> && outcome) const
         { return std::move (outcome.rest); }
     };
 

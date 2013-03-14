@@ -152,6 +152,10 @@ public:
         other.assert_invariants();
         sub_outcome = std::shared_ptr <sub_outcome_type> (
             new sub_outcome_type (*other.sub_outcome));
+        // Re-assign the outcome to itself, which checks whether it is
+        // assignable.
+        // (It doesn't check whether the assignment works in general.)
+        *sub_outcome = *other.sub_outcome;
         check = initialised;
     }
 
@@ -167,22 +171,24 @@ public:
         check = initialised;
     }
 
-    // Perform a deep copy
+    // Perform a deep copy of the current outcome, and assign the new one over
+    // it.
     fuzz_outcome & operator = (fuzz_outcome const & other)
     {
         other.assert_invariants();
         sub_parser = other.sub_parser;
         sub_outcome = std::shared_ptr <sub_outcome_type> (
-            new sub_outcome_type (*other.sub_outcome));
+            new sub_outcome_type (*sub_outcome));
+        *sub_outcome = *other.sub_outcome;
         return *this;
     }
-    // Perform a deep copy
+    // Perform a deep copy of the current outcome, and move-assign the new one
+    // over it.
     fuzz_outcome & operator = (fuzz_outcome && other)
     {
         other.assert_invariants();
         sub_parser = other.sub_parser;
-        sub_outcome = std::shared_ptr <sub_outcome_type> (
-            new sub_outcome_type (std::move (*other.sub_outcome)));
+        *sub_outcome = std::move (*other.sub_outcome);
         // Make sure to delete other.sub_outcome.
         other.sub_outcome.reset();
         return *this;
@@ -234,7 +240,9 @@ namespace parse_ll { namespace operation {
         struct output <fuzz_outcome <Parse, SubParser, Input>>
     {
         auto operator() (fuzz_outcome <Parse, SubParser, Input> const & outcome)
-            const -> decltype (::parse_ll::output (*outcome.sub_outcome_copy()))
+            const -> typename std::decay <
+                decltype (::parse_ll::output (*outcome.sub_outcome_copy()))
+            >::type
         {
             outcome.assert_invariants();
             return ::parse_ll::output (*outcome.sub_outcome_copy());

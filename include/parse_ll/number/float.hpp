@@ -68,7 +68,7 @@ public:
     template <class Digits>
     std::tuple <Result, int> operator() (
         std::tuple <Digits, boost::optional <
-            std::tuple <Digits> > > const & data) const
+            std::tuple <Digits> > const &> const & data) const
     {
         Digits before_dot = std::get <0> (data);
         Result current = add_digits (Result(), before_dot);

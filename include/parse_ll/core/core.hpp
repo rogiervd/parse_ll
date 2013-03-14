@@ -240,8 +240,13 @@ namespace detail {
         typedef decltype (::parse_ll::output (std::declval <Outcome>())) type;
     };
 
+    /**
+    Find the output of a parser, i.e. the output of the outcome of the parser.
+    This assumes the outcome is used as an lvalue.
+    */
     template <class Parse, class Parser, class Input> struct parser_output
-    : outcome_output <typename parser_outcome <Parse, Parser, Input>::type> {};
+    : outcome_output <typename parser_outcome <Parse, Parser, Input>::type &>
+    {};
 
 } // namespace detail
 
