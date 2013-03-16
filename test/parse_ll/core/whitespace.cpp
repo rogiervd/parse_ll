@@ -73,11 +73,6 @@ BOOST_AUTO_TEST_CASE (test_whitespace) {
             BOOST_CHECK (success (result));
         }
         {
-            auto parser = fuzz (parse_ll::one_vertical_space);
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
-        }
-        {
             auto parser = fuzz (parse_ll::vertical_space);
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
@@ -123,14 +118,6 @@ BOOST_AUTO_TEST_CASE (test_whitespace) {
             BOOST_CHECK_EQUAL (first (rest (result)), 'b');
         }
         {
-            auto parser = parse_ll::one_vertical_space;
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
-            static_assert (
-                std::is_same <decltype (output (result)), void>::value,
-                "Parser should have no output type");
-        }
-        {
             auto parser = parse_ll::vertical_space;
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
@@ -170,12 +157,6 @@ BOOST_AUTO_TEST_CASE (test_whitespace) {
             auto parser = parse_ll::one_horizontal_space;
             auto result = parse (parser, r);
             BOOST_CHECK (!success (result));
-        }
-        {
-            auto parser = parse_ll::one_vertical_space;
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), 'c');
         }
         {
             auto parser = parse_ll::vertical_space;

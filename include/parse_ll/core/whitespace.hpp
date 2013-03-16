@@ -43,11 +43,9 @@ static const auto horizontal_space = *one_horizontal_space;
 static const auto line_feed = literal ('\n');
 static const auto carriage_return = literal ('\r');
 static const auto newline = line_feed | (carriage_return >> -line_feed);
-static const auto one_vertical_space = +(line_feed | carriage_return);
-static const auto vertical_space = //*one_vertical_space;
-    *(line_feed | carriage_return);
+static const auto vertical_space = *(line_feed | carriage_return); // *newline
 
-static const auto one_whitespace = one_horizontal_space | one_vertical_space;
+static const auto one_whitespace = one_horizontal_space | newline;
 static const auto whitespace = *(space | tab | line_feed | carriage_return);
 
 } // namespace parse_ll
