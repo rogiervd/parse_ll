@@ -113,22 +113,22 @@ transform_parse <repeat_outcome <...>> for this case?
 */
 enum class repeat_type { lazy };
 
-template <class Parse, class SubParser, class Input, repeat_type Implementation>
-    struct repeat_outcome;
-template <class Parse, class SubParser, class Input, repeat_type Implementation>
-    struct repeat_output;
+template <class Policy, class SubParser, class Input,
+    repeat_type Implementation> struct repeat_outcome;
+template <class Policy, class SubParser, class Input,
+    repeat_type Implementation> struct repeat_output;
 struct repeat_output_range_tag;
 
 namespace operation {
 
     template <> struct parse <repeat_parser_tag> {
-        template <class Parse, class SubParser, class Input>
-            repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
-        operator() (Parse const & parse,
+        template <class Policy, class SubParser, class Input>
+            repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
+        operator() (Policy const & policy,
             repeat_parser <SubParser> const & parser, Input const & input) const
         {
-            return repeat_outcome <Parse, SubParser, Input, repeat_type::lazy> (
-                parse, parser, input);
+            return repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
+                (policy, parser, input);
         }
     };
 
@@ -155,48 +155,51 @@ It would be great if this would cause a static assertion failure in cases where
 the sub-parser always succeeds.
 Even I got caught out by this in writing test cases.
 */
-template <class Parse, class SubParser, class Input>
-    struct repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
+template <class Policy, class SubParser, class Input>
+    struct repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
 {
-    Parse parse;
+    Policy policy;
     repeat_parser <SubParser> const * parser;
     Input input;
 public:
-    repeat_outcome (Parse const & parse,
+    repeat_outcome (Policy const & policy,
         repeat_parser <SubParser> const & parser, Input const & input)
-    : parse (parse), parser (&parser), input (input) {}
+    : policy (policy), parser (&parser), input (input) {}
 };
 
 namespace operation {
 
-    template <class Parse, class SubParser, class Input>
+    template <class Policy, class SubParser, class Input>
         struct success <repeat_outcome <
-            Parse, SubParser, Input, repeat_type::lazy>>
+            Policy, SubParser, Input, repeat_type::lazy>>
     {
         bool operator() (
-            repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
+            repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
             const & outcome) const
         {
             // Check whether the minimum number of parses of the sub-parser
             // can be obtained.
             Input current = outcome.input;
             for (int count = 0; count < outcome.parser->minimum; ++ count) {
-                auto sub_outcome =
-                    outcome.parse (outcome.parser->sub_parser, current);
+                if (count != 0)
+                    current = parse_ll::skip_over (
+                        outcome.policy.skip_parser(), current);
+                auto sub_outcome = parse_ll::parse (
+                    outcome.policy, outcome.parser->sub_parser, current);
                 if (!::parse_ll::success (sub_outcome))
                     return false;
-                current = outcome.parse.skip (::parse_ll::rest (sub_outcome));
+                current = parse_ll::rest (sub_outcome);
             }
             return true;
         }
     };
 
-    template <class Parse, class SubParser, class Input>
+    template <class Policy, class SubParser, class Input>
         struct output <repeat_outcome <
-            Parse, SubParser, Input, repeat_type::lazy>>
+            Policy, SubParser, Input, repeat_type::lazy>>
     {
         typedef typename parse_ll::detail::parser_output <
-            Parse, SubParser, Input>::type sub_output_type;
+            Policy, SubParser, Input>::type sub_output_type;
 
         /**
         Select the output type.
@@ -204,36 +207,42 @@ namespace operation {
         void.
         */
         typedef typename boost::mpl::if_ <std::is_same <sub_output_type, void>,
-                void, repeat_output <Parse, SubParser, Input, repeat_type::lazy>
+                void,
+                repeat_output <Policy, SubParser, Input, repeat_type::lazy>
             >::type output_type;
 
         // If output_type is void, this never gets instantiated.
         output_type operator() (
-            repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
+            repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
                 const & outcome) const
         {
             assert (::parse_ll::success (outcome));
-            return repeat_output <Parse, SubParser, Input, repeat_type::lazy>
-                (outcome.parse,
+            return repeat_output <Policy, SubParser, Input, repeat_type::lazy>
+                (outcome.policy,
                     *outcome.parser, outcome.parser->maximum, outcome.input);
         }
     };
 
-    template <class Parse, class SubParser, class Input>
+    template <class Policy, class SubParser, class Input>
         struct rest <repeat_outcome <
-            Parse, SubParser, Input, repeat_type::lazy>>
+            Policy, SubParser, Input, repeat_type::lazy>>
     {
         Input operator() (
-            repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
+            repeat_outcome <Policy, SubParser, Input, repeat_type::lazy>
                 const & outcome) const
         {
             assert (::parse_ll::success (outcome));
             // Run the sub_parser through the input.
             Input current = outcome.input;
             for (int count = 0; count != outcome.parser->maximum; ++ count) {
-                auto sub_outcome = outcome.parse (outcome.parser->sub_parser,
+                auto sub_outcome = parse_ll::parse (
+                    outcome.policy, outcome.parser->sub_parser,
                     // Only skip in between elements, not before.
-                    count == 0 ? current : outcome.parse.skip (current));
+                    (count == 0) ? current : parse_ll::skip_over (
+                        outcome.policy.skip_parser(), current));
+                // If the parser has failed, current is still at rest() applied
+                // to the sub-parser that last succeeded: the skip parser has
+                // not been applied.
                 if (! ::parse_ll::success (sub_outcome)) {
                     assert (count >= outcome.parser->minimum);
                     return current;
@@ -256,32 +265,32 @@ drop() uses the rest of sub_outcome.
 
 \todo When maximum==0, the sub_outcome does not even have to be instantiated.
 */
-template <class Parse, class SubParser, class Input>
-    struct repeat_output <Parse, SubParser, Input, repeat_type::lazy>
+template <class Policy, class SubParser, class Input>
+    struct repeat_output <Policy, SubParser, Input, repeat_type::lazy>
 {
-    Parse parse;
+    Policy policy;
     // If this were a reference, the class could not be copy-assigned.
     repeat_parser <SubParser> const * parser;
     int maximum;
-    typedef typename detail::parser_outcome <Parse, SubParser, Input>::type
+    typedef typename detail::parser_outcome <Policy, SubParser, Input>::type
         sub_outcome_type;
     sub_outcome_type sub_outcome;
 public:
-    repeat_output (Parse const & parse,
+    repeat_output (Policy const & policy,
         repeat_parser <SubParser> const & parser,
         int maximum, Input const & input)
-    : parse (parse), parser (&parser), maximum (maximum),
-        sub_outcome (parse (parser.sub_parser, input)) {}
+    : policy (policy), parser (&parser), maximum (maximum),
+        sub_outcome (parse_ll::parse (policy, parser.sub_parser, input)) {}
 };
 
 } // namespace parse_ll
 
 namespace range {
 
-template <class Parse, class SubParser, class Input,
+template <class Policy, class SubParser, class Input,
     parse_ll::repeat_type Implementation>
 struct tag_of_bare <parse_ll::repeat_output <
-    Parse, SubParser, Input, Implementation>>
+    Policy, SubParser, Input, Implementation>>
 { typedef parse_ll::repeat_output_range_tag type; };
 
 namespace operation {
@@ -289,9 +298,9 @@ namespace operation {
     template<>
         struct empty <parse_ll::repeat_output_range_tag, direction::front>
     {
-        template <class Parse, class SubParser, class Input>
+        template <class Policy, class SubParser, class Input>
             bool operator() (direction::front,
-                parse_ll::repeat_output <Parse, SubParser, Input,
+                parse_ll::repeat_output <Policy, SubParser, Input,
                     parse_ll::repeat_type::lazy> const & o) const
         {
             if (o.maximum != 0 && ::parse_ll::success (o.sub_outcome))
@@ -304,9 +313,9 @@ namespace operation {
     template<>
         struct first <parse_ll::repeat_output_range_tag, direction::front>
     {
-        template <class Parse, class SubParser, class Input>
+        template <class Policy, class SubParser, class Input>
             auto operator() (direction::front,
-                parse_ll::repeat_output <Parse, SubParser, Input,
+                parse_ll::repeat_output <Policy, SubParser, Input,
                     ::parse_ll::repeat_type::lazy> const & o) const
         -> decltype (::parse_ll::output (o.sub_outcome))
         {
@@ -323,8 +332,9 @@ namespace operation {
             const
         {
             assert (!::range::empty (o));
-            auto next_range = o.parse.skip (::parse_ll::rest (o.sub_outcome));
-            return Output (o.parse, *o.parser, o.maximum - 1, next_range);
+            auto next_range = parse_ll::skip_over (
+                o.policy.skip_parser(), ::parse_ll::rest (o.sub_outcome));
+            return Output (o.policy, *o.parser, o.maximum - 1, next_range);
         }
     };
 

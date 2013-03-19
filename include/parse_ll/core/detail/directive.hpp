@@ -50,12 +50,12 @@ template <class SubParser, class ConvertPolicy>
 namespace operation {
 
     template <> struct parse <change_policy_tag> {
-        template <class Parse, class SubParser, class ConvertPolicy,
+        template <class Policy, class SubParser, class ConvertPolicy,
             class Input>
-        auto operator() (Parse const & parse,
+        auto operator() (Policy const & policy,
             change_policy <SubParser, ConvertPolicy> const & directive,
             Input const & input) const
-        RETURNS (parse_with (directive.convert_policy (parse.policy())) (
+        RETURNS (parse_ll::parse (directive.convert_policy (policy),
             directive.sub_parser, input));
     };
 

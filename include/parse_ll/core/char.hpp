@@ -63,8 +63,8 @@ public:
 namespace operation {
 
     template <> struct parse <char_parser_tag> {
-        template <class Parse, class Match, class Input>
-            char_outcome <Input> operator() (Parse const & parse,
+        template <class Policy, class Match, class Input>
+            char_outcome <Input> operator() (Policy const &,
                 char_parser <Match> const & parser, Input const & input) const
         {
             if (!::range::empty (input)

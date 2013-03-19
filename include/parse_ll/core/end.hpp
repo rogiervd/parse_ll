@@ -42,8 +42,8 @@ template <> struct decayed_parser_tag <end_parser>
 namespace operation {
 
     template <> struct parse <end_parser_tag> {
-        template <class Parse, class Input> explicit_outcome <void, Input>
-            operator() (Parse const &, end_parser, Input const & input) const
+        template <class Policy, class Input> explicit_outcome <void, Input>
+            operator() (Policy const &, end_parser, Input const & input) const
         {
             if (::range::empty (input))
                 return explicit_outcome <void, Input> (input);

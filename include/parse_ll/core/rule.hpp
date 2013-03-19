@@ -115,10 +115,11 @@ template <class Input, class Output>
 namespace operation {
 
     template <> struct parse <rule_tag> {
-        template <class Parse, class RuleInput, class Output, class ActualInput>
+        template <class Policy, class RuleInput, class Output,
+                class ActualInput>
         // Always generate a return type, to prevent strange errors.
             explicit_outcome <Output, ActualInput> operator() (
-                Parse const &, rule <RuleInput, Output> const & parser,
+                Policy const &, rule <RuleInput, Output> const & parser,
                 ActualInput const & input) const
         {
             // Generate an error here.

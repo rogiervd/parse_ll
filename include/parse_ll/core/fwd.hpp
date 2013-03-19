@@ -25,6 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace parse_ll {
 
+template <class Range, class Dummy = void> struct decayed_parser_tag;
+template <class Range, class Dummy = void> struct parser_tag;
+
 // These are required for core.hpp
 struct nothing_parser;
 template <class Derived> struct parser_base;
@@ -49,10 +52,12 @@ namespace parse_policy {
 
 namespace operation {
 
-    template <class Parser, typename Enable> struct describe;
-    template <class Outcome, typename Enable> struct success;
-    template <class Outcome, typename Enable> struct output;
-    template <class Outcome, typename Enable> struct rest;
+    template <class ParserTag, typename Enable = void> struct parse;
+    template <class ParserTag, typename Enable = void> struct skip_over;
+    template <class ParserTag, typename Enable = void> struct describe;
+    template <class Outcome, typename Enable = void> struct success;
+    template <class Outcome, typename Enable = void> struct output;
+    template <class Outcome, typename Enable = void> struct rest;
 
     struct unimplemented {};
     template <class Operation> struct is_implemented

@@ -108,12 +108,12 @@ RETURNS (alternative (
 namespace operation {
 
     template <> struct parse <alternative_parser_tag> {
-        template <class Parse, class Parser1, class Parser2, class Input>
+        template <class Policy, class Parser1, class Parser2, class Input>
             struct result
         {
-            typedef typename detail::parser_outcome <Parse, Parser1, Input
+            typedef typename detail::parser_outcome <Policy, Parser1, Input
                 >::type outcome_1_type;
-            typedef typename detail::parser_outcome <Parse, Parser2, Input
+            typedef typename detail::parser_outcome <Policy, Parser2, Input
                 >::type outcome_2_type;
             typedef typename detail::outcome_output <outcome_1_type>::type
                 output_1_type;
@@ -127,23 +127,24 @@ namespace operation {
             typedef explicit_outcome <output_type, Input> type;
         };
 
-        template <class Parse, class Parser1, class Parser2, class Input>
-            typename result <Parse, Parser1, Parser2, Input>::type
-        operator() (Parse const & parse,
+        template <class Policy, class Parser1, class Parser2, class Input>
+            typename result <Policy, Parser1, Parser2, Input>::type
+        operator() (Policy const & policy,
             alternative_parser <Parser1, Parser2> const & parser,
             Input const & input) const
         {
-            typedef typename result <Parse, Parser1, Parser2, Input>::type
+            typedef typename result <Policy, Parser1, Parser2, Input>::type
                 result_type;
             {
                 // Try parser 1
-                auto outcome_1 = parse (parser.parser_1, input);
+                auto outcome_1 =
+                    parse_ll::parse (policy, parser.parser_1, input);
                 if (::parse_ll::success (outcome_1))
                     return result_type (std::move (outcome_1));
                 // Failed; destruct outcome_1.
             }
             // Try parser 2
-            auto outcome_2 = parse (parser.parser_2, input);
+            auto outcome_2 = parse_ll::parse (policy, parser.parser_2, input);
             if (::parse_ll::success (outcome_2))
                 return result_type (std::move (outcome_2));
             // Otherwise, fail.

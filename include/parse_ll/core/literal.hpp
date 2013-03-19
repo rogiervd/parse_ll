@@ -64,8 +64,8 @@ inline literal_parser <std::string> literal (std::string const & s) {
 namespace operation {
 
     template <> struct parse <literal_parser_tag> {
-        template <class Parse, class Literal, class Input>
-        explicit_outcome <void, Input> operator() (Parse const & parse,
+        template <class Policy, class Literal, class Input>
+        explicit_outcome <void, Input> operator() (Policy const &,
             literal_parser <Literal> const & parser, Input input) const
         {
             using ::range::empty; using ::range::first; using ::range::drop;

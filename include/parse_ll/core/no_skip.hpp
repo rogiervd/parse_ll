@@ -25,6 +25,7 @@ Define the no_skip directive, which disables any skip parser for the sub-parser.
 #define PARSE_LL_BASE_NO_SKIP_HPP_INCLUDED
 
 #include "detail/directive.hpp"
+#include "fail.hpp"
 
 namespace parse_ll {
 
@@ -37,8 +38,7 @@ namespace parse_policy {
         explicit no_skip_policy (OriginalPolicy const & original_policy_)
         : OriginalPolicy (original_policy_) {}
 
-        template <class Input> auto skip (Input && input) const
-            RETURNS (std::forward <Input> (input));
+        fail_parser const & skip_parser() const { return fail; }
 
         OriginalPolicy const & original_policy() const { return *this; }
     };

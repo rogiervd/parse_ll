@@ -22,7 +22,7 @@ Test skip and no_skip.
 */
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE char_parser
+#define BOOST_TEST_MODULE skip_no_skip
 #include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/no_skip.hpp"
@@ -57,13 +57,13 @@ static const auto silly_skip = silly_skip_parser();
 namespace parse_ll { namespace operation {
 
     template <> struct parse <silly_skip_parser_tag> {
-        template <class Parse, class Input>
+        template <class Policy, class Input>
             parse_ll::explicit_outcome <void, Input>
-                operator() (Parse const & parse, silly_skip_parser const &,
+                operator() (Policy const & policy, silly_skip_parser const &,
                     Input const & input) const
         {
-            return parse_ll::explicit_outcome <void, Input> (
-                parse.skip (input));
+            return explicit_outcome <void, Input> (
+                parse_ll::skip_over (policy.skip_parser(), input));
         }
     };
 

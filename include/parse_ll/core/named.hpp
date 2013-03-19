@@ -51,10 +51,10 @@ template <class Parser> struct decayed_parser_tag <Parser,
 
 namespace operation {
     template <> struct parse <named_parser_tag> {
-        template <class Parse, class Parser, class Input>
-            auto operator() (Parse const & parse,
+        template <class Policy, class Parser, class Input>
+            auto operator() (Policy const & policy,
                 Parser const & parser, Input const & input) const
-        RETURNS (parse (parser.implementation(), input))
+        RETURNS (parse_ll::parse (policy, parser.implementation(), input))
     };
 
     template <> struct describe <named_parser_tag> {

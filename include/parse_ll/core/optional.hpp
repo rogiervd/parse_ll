@@ -75,9 +75,9 @@ template <class SubParser>
 namespace operation {
 
     template <> struct parse <optional_parser_tag> {
-        template <class Parse, class SubParser, class Input> struct result {
+        template <class Policy, class SubParser, class Input> struct result {
             typedef typename std::decay <Input>::type bare_input_type;
-            typedef typename detail::parser_outcome <Parse, SubParser,
+            typedef typename detail::parser_outcome <Policy, SubParser,
                 bare_input_type>::type sub_outcome_type;
             typedef typename detail::outcome_output <sub_outcome_type>::type
                 sub_output_type;
@@ -88,19 +88,19 @@ namespace operation {
             typedef successful <output_type, bare_input_type> type;
         };
 
-        template <class Parse, class SubParser, class Input>
-            typename result <Parse, SubParser, Input>::type
-        operator() (Parse const & parse,
+        template <class Policy, class SubParser, class Input>
+            typename result <Policy, SubParser, Input>::type
+        operator() (Policy const & policy,
             optional_parser <SubParser> const & parser, Input && input) const
         {
-            auto sub_outcome =
-                parse (parser.sub_parser, std::forward <Input> (input));
+            auto sub_outcome = parse_ll::parse (policy,
+                parser.sub_parser, std::forward <Input> (input));
             if (::parse_ll::success (sub_outcome))
                 return sub_outcome;
             else
                 // Default-construct the output type, i.e. an empty
                 // boost::optional <...>, or a void.
-                return typename result <Parse, SubParser, Input>::type (input);
+                return typename result <Policy, SubParser, Input>::type (input);
         }
     };
 

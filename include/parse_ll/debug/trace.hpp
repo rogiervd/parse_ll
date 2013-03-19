@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Rogier van Dalen.
+Copyright 2012, 2013 Rogier van Dalen.
 
 This file is part of Rogier van Dalen's LL Parser library for C++.
 
@@ -76,9 +76,7 @@ namespace parse_policy {
         std::weak_ptr <int> parent_depth;
         mutable std::vector <std::shared_ptr <int>> depths;
 
-        bool inhibited() const {
-            return inhibit || parent_depth.expired();
-        }
+        bool inhibited() const { return inhibit || parent_depth.expired(); }
 
         int current_depth() const {
             assert (!inhibited());
@@ -114,18 +112,18 @@ namespace parse_policy {
             // assert (parent_depth.expired() || depths.empty());
         }
 
-        template <class WrapperParse, class Parser, class Input>
+        template <class Apply, class Policy, class Parser, class Input>
             auto apply_parse (
-                WrapperParse const & wrapper_parse,
+                Policy const & policy,
                 Parser const & parser, Input const & input) const
-        -> /*decltype (std::declval <OriginalPolicy const>().apply_parse (
-            wrapper_parse, parser, input))*/
-            typename callable::apply_parse_type <
-                OriginalPolicy, WrapperParse, Parser, Input>::type
+        // The return type of the original policy.
+        -> decltype (std::declval <OriginalPolicy const &>().template
+            apply_parse <Apply> (policy, parser, input))
         {
             if (inhibited())
-                return original_policy().apply_parse (
-                    wrapper_parse, parser, input);
+                // Just call the original policy.
+                return original_policy().template apply_parse <Apply> (
+                    policy, parser, input);
             else {
                 int depth = current_depth() + 1;
                 depths.push_back (std::make_shared <int> (depth));
@@ -135,8 +133,9 @@ namespace parse_policy {
                 if (stop (parser))
                     inhibit = true;
 
-                auto outcome = original_policy().apply_parse (
-                    wrapper_parse, parser, input);
+                // Call the original policy.
+                auto outcome = original_policy().template apply_parse <Apply> (
+                    policy, parser, input);
 
                 if (inhibit)
                     inhibit = false;

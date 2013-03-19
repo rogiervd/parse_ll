@@ -47,7 +47,7 @@ namespace operation {
     Implementation of "success()".
     Specialise this for every Outcome class.
     */
-    template <class Outcome, typename Enable = void>
+    template <class Outcome, typename Enable /* = void */>
         struct success : unimplemented {};
 
     /**
@@ -56,9 +56,9 @@ namespace operation {
     This will never be called if the result type of operator() is declared to
     return void.
     */
-    template <class Outcome, typename Enable = void>
+    template <class Outcome, typename Enable /* = void */>
         struct output : unimplemented {};
-    template <class Outcome, typename Enable = void>
+    template <class Outcome, typename Enable /* = void */>
         struct rest : unimplemented {};
 
     namespace output_detail {

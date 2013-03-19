@@ -27,174 +27,96 @@ Base classes for parser.
 #include <utility>
 #include <type_traits>
 
+#include <boost/mpl/if.hpp>
+#include <boost/utility/enable_if.hpp>
+
 #include "utility/returns.hpp"
 
+#include "rime/core.hpp"
 #include "range/core.hpp"
 
 #include "fwd.hpp"
+#include "detail/parser_base.hpp"
 #include "outcome/core.hpp"
+#include "fail.hpp"
 
 namespace parse_ll {
 
-/*** parser ***/
-
-template <class Derived> struct parser_base {
-    Derived const * this_() const
-    { return static_cast <Derived const *> (this); }
-
-    repeat_parser <Derived> operator* () const {
-        return repeat_parser <Derived> (*this_(), 0, -1);
-    }
-    repeat_parser <Derived> operator+ () const {
-        return repeat_parser <Derived> (*this_(), 1, -1);
-    }
-
-    optional_parser <Derived> operator- () const {
-        return optional_parser <Derived> (*this_());
-    }
-
-    template <class OtherParser>
-        alternative_parser <Derived, OtherParser>
-            operator| (OtherParser const & other) const
-    {
-        return alternative_parser <Derived, OtherParser> (*this_(), other);
-    }
-
-    template <class OtherParser>
-        sequence_parser <false, Derived, OtherParser>
-            operator >> (OtherParser const & other) const
-    {
-        return sequence_parser <false, Derived, OtherParser> (*this_(), other);
-    }
-
-    /**
-    \todo Make sure there's no difference between
-        a > b >> c and (a > b) >> c.
-    */
-    template <class OtherParser>
-        sequence_parser <true, Derived, OtherParser>
-            operator > (OtherParser const & other) const
-    {
-        return sequence_parser <true, Derived, OtherParser> (*this_(), other);
-    }
-
-    template <class OtherParser>
-        difference_parser <Derived, OtherParser>
-            operator - (OtherParser const & other) const
-    {
-        return difference_parser <Derived, OtherParser> (*this_(), other);
-    }
-
-    template <class Actor>
-    transform_parser <Derived, Actor> operator[] (Actor const & actor) const {
-        return transform_parser <Derived, Actor> (*this_(), actor);
-    }
-};
-
 struct not_a_parser_tag;
 
-template <class Range, class Dummy = void> struct decayed_parser_tag
+template <class Range, class Dummy> struct decayed_parser_tag
 { typedef not_a_parser_tag type; };
 
-template <class Range, class Dummy = void> struct parser_tag
+template <class Range, class Dummy> struct parser_tag
 : decayed_parser_tag <typename std::decay <Range>::type> {};
 
 /*** operation ***/
 namespace operation {
 
-    // Will be called with Parse, Parser and Input.
-    template <class ParserTag, typename Enable = void>
+    // Will be called with Policy, Parser and Input.
+    template <class ParserTag, typename Enable /* = void*/>
         struct parse : unimplemented {};
+
+    /**
+    Apply the parser as a skip parser.
+    That is, parse with it, and if it is successful, then return the rest of the
+    input; if it is not successful, then return the original input.
+    A default implementation, which always works but may not be optimal, is
+    provided.
+    Will be called with Policy, Parser and Input.
+    */
+    template <class ParserTag, typename Enable /* = void*/>
+        struct skip_over;
 
     /**
     Give a textual representation of a parser.
     The representation is not nested.
     Specialise this for every Parser class.
     */
-    template <class ParserTag, typename Enable = void> struct describe;
+    template <class ParserTag, typename Enable /*= void*/> struct describe;
 
 } // namespace operation
 
 namespace apply {
 
-    template <class Parse, class Parser, class Input> struct parse
-    : operation::parse <typename parser_tag <Parser>::type> {};
+    template <class ... Arguments> struct parse;
 
-    template <class Parser> struct describe
+    template <class ... Arguments> struct skip_over;
+
+    template <class ... Arguments> struct describe;
+    template <class Parser> struct describe <Parser>
     : operation::describe <typename parser_tag <Parser>::type> {};
 
 } // namespace apply
 
 namespace has {
-    template <class Parse, class Parser, class Input> struct parse
-    : operation::is_implemented <apply::parse <Parse, Parser, Input> > {};
+
+    template <class ... Arguments> struct parse
+    : operation::is_implemented <apply::parse <Arguments ...> > {};
+
+    template <class ... Arguments> struct skip_over
+    : operation::is_implemented <apply::parse <Arguments ...> > {};
+
+    template <class ... Arguments> struct describe
+    : operation::is_implemented <apply::describe <Arguments ...> > {};
+
 } // namespace has
 
 namespace callable {
 
-    // Workaround for GCC 4.6, which it refuses to mangle
-    // std::declval <Policy>().apply_parse (...).
-    // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48051
-    template <class Policy, class WrappedParse, class Parser, class Input>
-        struct apply_parse_type
-    {
-        virtual void do_not_construct()=0;
-
-        Policy policy;
-        typedef decltype (policy.apply_parse (std::declval <WrappedParse>(),
-            std::declval <Parser>(), std::declval <Input>())) type;
-    };
-
-    /**
-    Base class that provides a parse function that can hold properties that
-    get propagated through the parse.
-    It takes a policy argument which determines the behaviour.
-
-    \todo Make it possible to curry this.
-    */
-    template <class Policy> struct parse : public Policy {
-        template <class ... Arguments>
-            parse (Arguments && ... arguments)
-        : Policy (std::forward <Arguments> (arguments) ...) {}
-
-        /**
-        Call apply_parse with the same parse as wrapper_parse.
-        */
-        template <class Parser, class Input> auto operator() (
-            parser_base <Parser> const & parser, Input && input) const
-        -> /*decltype (std::declval <Policy>().apply_parse (
-            std::declval <parse>(), *parser.this_(), std::declval <Input>()))*/
-            typename boost::lazy_enable_if <range::is_view <Input>,
-                apply_parse_type <Policy, parse, Parser, Input>>::type
+    namespace detail {
+        template <template <class ...> class Apply> struct generic
         {
-            static_assert (range::is_range <Input>::value,
-                "Input must be a range.");
-            static_assert (range::is_homogeneous <Input>::value,
-                "Input must be a homogeneous range.");
-            return this->apply_parse (*this,
-                *parser.this_(), std::forward <Input> (input));
-        }
+            template <class ... Arguments>
+                auto operator() (Arguments && ... arguments) const
+            RETURNS (Apply <Arguments ...>() (
+                std::forward <Arguments> (arguments) ...))
+        };
+    } // namespace detail
 
-        // Make view before passing on
-        template <class Parser, class Input>
-            typename boost::lazy_disable_if <range::is_view <Input>,
-                apply_parse_type <Policy, parse, Parser,
-                    typename range::result_of::view <Input>::type>>::type
-        operator() (parser_base <Parser> const & parser, Input && input) const
-        {
-            static_assert (range::is_range <Input>::value,
-                "Input must be a range.");
-            return (*this) (parser, range::view (std::forward <Input> (input)));
-        }
-
-        Policy const & policy() const { return *this; }
-    };
-
-
-    struct describe {
-        template <class Parser> auto operator() (Parser const & parser) const
-        RETURNS (apply::describe <Parser>() (parser))
-    };
+    struct parse : detail::generic <apply::parse> {};
+    struct skip_over : detail::generic <apply::skip_over> {};
+    struct describe : detail::generic <apply::describe> {};
 
 } // namespace callable
 
@@ -206,42 +128,149 @@ namespace parse_policy {
     */
     struct direct {
         /**
-        Perform the appropriate action for the parse function, propagating a
-        potentially different wrapper_parse.
+        Perform the parse and return the return type.
+        This works by calling a default-constructed instance of
+        Apply::apply <Policy, Parser, Input> with (Policy, Parser, Input).
+        The return type depends on the type that Apply::apply <...> returns.
 
-        This default version just calls apply::parse with the appropriate
-        parameters.
+        Because of its extensive compile-time polymorphism, it is not possible
+        for run-time polymorphic parsers like rule<> to propagate apply_parse
+        inside.
         */
-        template <class WrapperParse, class Parser, class Input>
-            auto apply_parse (
-                WrapperParse && wrapper_parse,
-                Parser && parser, Input && input) const
-        RETURNS (apply::parse <WrapperParse, Parser, Input>() (
-            std::forward <WrapperParse> (wrapper_parse),
-            std::forward <Parser> (parser), std::forward <Input> (input)))
+        template <class Apply, class Policy, class Parser, class Input>
+            auto apply_parse (Policy const & policy, Parser const & parser,
+                Input && input) const
+        RETURNS (typename Apply::template
+            apply <Policy const &, Parser const &, Input>() (
+                policy, parser, std::forward <Input> (input)))
 
-        // No skipping.
-        template <class Input> auto skip (Input && input) const
-            RETURNS (std::forward <Input> (input))
+        /**
+        \return The skip parser to use between elements
+        */
+        fail_parser const & skip_parser() const { return fail; }
     };
 
 } // parse_policy
 
-template <class Policy> inline callable::parse <Policy>
-    parse_with (Policy const & policy)
-{ return callable::parse <Policy> (policy); }
-
-static const auto parse = parse_with (parse_policy::direct());
+static const auto parse = callable::parse();
+static const auto skip_over = callable::skip_over();
 static const auto describe = callable::describe();
+
+namespace apply {
+
+    namespace parse_detail {
+
+        template <class Apply, class Arguments, class Enable = void>
+        struct arrange_parse_parameters;
+
+        // Policy, Parser, and Input which is a view: forward.
+        template <class Apply, class Policy, class Parser, class Input>
+            struct arrange_parse_parameters <
+                Apply, meta::vector <Policy, Parser, Input>,
+                typename boost::enable_if <range::is_view <Input>>::type>
+        {
+            auto operator() (Policy && policy, Parser && parser, Input && input)
+                const
+            RETURNS (policy.template apply_parse <Apply> (
+                policy, std::forward <Parser> (parser),
+                std::forward <Input> (input)))
+        };
+
+        // Policy, Parser, and Input which is not a view: call view (input).
+        template <class Apply, class Policy, class Parser, class Input>
+            struct arrange_parse_parameters <
+                Apply, meta::vector <Policy, Parser, Input>,
+                typename boost::disable_if <range::is_view <Input>>::type>
+        {
+            typedef typename range::result_of::view <Input>::type view_type;
+            arrange_parse_parameters <Apply,
+                meta::vector <Policy, Parser, view_type>> implementation;
+
+            auto operator() (Policy && policy, Parser && parser, Input && input)
+                const
+            RETURNS (implementation (std::forward <Policy> (policy),
+                std::forward <Parser> (parser),
+                range::view (std::forward <Input> (input))))
+        };
+
+        // Just Parser, and Input: prepend the default policy.
+        template <class Apply, class Parser, class Input>
+            struct arrange_parse_parameters <
+                Apply, meta::vector <Parser, Input>>
+        {
+            arrange_parse_parameters <Apply, meta::vector <
+                    parse_policy::direct const &, Parser, Input>>
+                implementation;
+
+            auto operator() (Parser && parser, Input && input) const
+            RETURNS (implementation (parse_policy::direct(),
+                std::forward <Parser> (parser), std::forward <Input> (input)))
+        };
+
+        template <template <class, class> class Operation> struct apply_parse {
+            template <class Policy, class Parser, class Input> struct apply
+            : Operation <typename parser_tag <Parser>::type, void> {};
+        };
+
+    } // namespace parse_detail
+
+    template <class ... Arguments> struct parse
+    : parse_detail::arrange_parse_parameters <
+        parse_detail::apply_parse <operation::parse>,
+        meta::vector <Arguments...>> {};
+
+    template <class ... Arguments> struct skip_over
+    : parse_detail::arrange_parse_parameters <
+        parse_detail::apply_parse <operation::skip_over>,
+        meta::vector <Arguments...>> {};
+
+} // namespace apply
+
+namespace operation {
+
+    namespace skip_over_detail {
+
+        template <class ParserTag> struct skip_over_default {
+            template <class Policy, class Parser, class Input>
+                typename std::decay <Input>::type operator() (
+                    Policy const & policy, Parser const & parser,
+                    Input && input) const
+            {
+                auto outcome = parse_ll::parse (
+                    policy, parser, std::forward <Input> (input));
+                if (parse_ll::success (outcome))
+                    return parse_ll::rest (std::move (outcome));
+                else
+                    return std::forward <Input> (input);
+            }
+        };
+
+    } // namespace skip_over_detail
+
+    /**
+    Apply the parser as a skip parser.
+    That is, parse with it, and if it is successful, then return the rest of the
+    input; if it is not successful, then return the original input.
+    A default implementation, which always works but may not be optimal, is
+    provided.
+    Will be called with Policy, Parser and Input.
+    */
+    template <class ParserTag, typename Enable /* = void*/>
+        struct skip_over
+    : boost::mpl::if_ <is_implemented <parse <ParserTag>>,
+        skip_over_detail::skip_over_default <ParserTag>, unimplemented>::type
+    {};
+
+} // namespace operation
 
 namespace detail {
 
     /**
     Find the unqualified type of the outcome.
     */
-    template <class Parse, class Parser, class Input> struct parser_outcome
-    : std::decay <decltype (std::declval <Parse const>() (
-        std::declval <Parser const>(), std::declval <Input const>()))> {};
+    template <class Policy, class Parser, class Input> struct parser_outcome
+    : std::decay <typename std::result_of <callable::parse (
+        Policy, Parser, Input)>::type> {};
 
     template <class Outcome> struct outcome_output {
         typedef decltype (::parse_ll::output (std::declval <Outcome>())) type;
@@ -251,8 +280,8 @@ namespace detail {
     Find the output of a parser, i.e. the output of the outcome of the parser.
     This assumes the outcome is used as an lvalue.
     */
-    template <class Parse, class Parser, class Input> struct parser_output
-    : outcome_output <typename parser_outcome <Parse, Parser, Input>::type &>
+    template <class Policy, class Parser, class Input> struct parser_output
+    : outcome_output <typename parser_outcome <Policy, Parser, Input>::type &>
     {};
 
 } // namespace detail

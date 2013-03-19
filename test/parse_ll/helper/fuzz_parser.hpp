@@ -118,27 +118,28 @@ Wrap a parser outcome for debugging.
 Outcomes are allowed to be copied and destructed at will.
 That is, indeed, what fuzz_outcome intends to do.
 */
-template <class Parse, class SubParser, class Input> class fuzz_outcome {
+template <class Policy, class SubParser, class Input> class fuzz_outcome {
     int check;
     static constexpr int initialised = 987164613;
     static constexpr int uninitialised = 14687234;
 
     std::weak_ptr <SubParser> sub_parser;
-    typedef typename parse_ll::detail::parser_outcome <Parse, SubParser, Input
+    typedef typename parse_ll::detail::parser_outcome <Policy, SubParser, Input
         >::type sub_outcome_type;
     std::shared_ptr <sub_outcome_type> sub_outcome;
 
 public:
-    fuzz_outcome (Parse const & parse,
+    fuzz_outcome (Policy const & policy,
         std::shared_ptr <SubParser> sub_parser, Input const & input)
     : check (uninitialised), sub_parser (sub_parser) {
         std::unique_ptr <sub_outcome_type> temporary_outcome;
         {
             // The parse function is only guaranteed to exist as long as it is
             // being called...
-            std::unique_ptr <Parse> temporary_parse (new Parse (parse));
+            std::unique_ptr <Policy> temporary_policy (new Policy (policy));
             temporary_outcome = std::unique_ptr <sub_outcome_type> (
-                new sub_outcome_type ((*temporary_parse) (*sub_parser, input)));
+                new sub_outcome_type (parse_ll::parse (
+                    *temporary_policy, *sub_parser, input)));
             // ... so destruct it immediately.
         }
         // Move
@@ -220,35 +221,36 @@ public:
 namespace parse_ll { namespace operation {
 
     template <> struct parse <fuzz_parser_tag> {
-        template <class Parse, class SubParser, class DerivedSubParser,
+        template <class Policy, class SubParser, class DerivedSubParser,
             class Input>
-        fuzz_outcome <Parse, DerivedSubParser, Input> operator() (
-            Parse const & parse,
+        fuzz_outcome <Policy, DerivedSubParser, Input> operator() (
+            Policy const & policy,
             fuzz_parser <SubParser, DerivedSubParser> const & parser,
             Input const & input) const
         {
             parser.assert_initialised();
-            return fuzz_outcome <Parse, DerivedSubParser, Input> (parse,
+            return fuzz_outcome <Policy, DerivedSubParser, Input> (policy,
                 parser.sub_parser, input);
         }
     };
 
-    template <class Parse, class SubParser, class Input>
-        struct success <fuzz_outcome <Parse, SubParser, Input>>
+    template <class Policy, class SubParser, class Input>
+        struct success <fuzz_outcome <Policy, SubParser, Input>>
     {
-        bool operator() (fuzz_outcome <Parse, SubParser, Input> const & outcome)
-            const
+        bool operator() (fuzz_outcome <Policy, SubParser, Input> const &
+            outcome) const
         {
             outcome.assert_invariants();
             return ::parse_ll::success (*outcome.sub_outcome_copy());
         }
     };
 
-    template <class Parse, class SubParser, class Input>
-        struct output <fuzz_outcome <Parse, SubParser, Input>>
+    template <class Policy, class SubParser, class Input>
+        struct output <fuzz_outcome <Policy, SubParser, Input>>
     {
-        auto operator() (fuzz_outcome <Parse, SubParser, Input> const & outcome)
-            const -> typename std::decay <
+        auto operator() (fuzz_outcome <Policy, SubParser, Input> const &
+            outcome) const
+            -> typename std::decay <
                 decltype (::parse_ll::output (*outcome.sub_outcome_copy()))
             >::type
         {
@@ -257,10 +259,10 @@ namespace parse_ll { namespace operation {
         }
     };
 
-    template <class Parse, class SubParser, class Input>
-        struct rest <fuzz_outcome <Parse, SubParser, Input>>
+    template <class Policy, class SubParser, class Input>
+        struct rest <fuzz_outcome <Policy, SubParser, Input>>
     {
-        Input operator() (fuzz_outcome <Parse, SubParser, Input> const &
+        Input operator() (fuzz_outcome <Policy, SubParser, Input> const &
             outcome) const
         {
             outcome.assert_invariants();

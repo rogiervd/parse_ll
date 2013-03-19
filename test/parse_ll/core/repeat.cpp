@@ -273,6 +273,7 @@ BOOST_AUTO_TEST_CASE (test_repeat_skipping) {
         {
             auto parser = skip_space [*parse_ll::char_ ('a')];
             auto result = parse (parser, r);
+            // Success but nothing parsed.
             BOOST_CHECK (success (result));
             BOOST_CHECK (empty (output (result)));
         }
@@ -282,8 +283,11 @@ BOOST_AUTO_TEST_CASE (test_repeat_skipping) {
         {
             auto parser = skip_space [*parse_ll::char_ ('a')];
             auto result = parse (parser, r);
+            // Success: one "a" parsed, not the " " following.
             BOOST_CHECK (success (result));
+            BOOST_CHECK (!empty (output (result)));
             BOOST_CHECK (empty (drop (output (result))));
+            BOOST_CHECK (!empty (rest (result)));
             BOOST_CHECK_EQUAL (first (rest (result)), ' ');
         }
     }

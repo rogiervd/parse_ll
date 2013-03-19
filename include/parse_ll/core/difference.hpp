@@ -52,20 +52,20 @@ Outcome for difference_parser.
 This tries out parser_2, and if it fails, saves the outcome of parser_1.
 In that case, it essentially mimics parser_1.
 */
-template <class Parse, class Parser1, class Parser2, class Input>
+template <class Policy, class Parser1, class Parser2, class Input>
     struct difference_outcome
 {
-    typedef typename detail::parser_outcome <Parse, Parser1, Input>::type
+    typedef typename detail::parser_outcome <Policy, Parser1, Input>::type
         outcome_1_type;
     mutable boost::optional <outcome_1_type> outcome_1;
 public:
-    difference_outcome (Parse const & parse,
+    difference_outcome (Policy const & policy,
         Parser1 const & parser_1, Parser2 const & parser_2, Input const & input)
     {
-        auto outcome_2 = parse (parser_2, input);
+        auto outcome_2 = parse (policy, parser_2, input);
         if (!success (outcome_2)) {
             // Try parser_1
-            outcome_1 = parse (parser_1, input);
+            outcome_1 = parse (policy, parser_1, input);
         }
         // Otherwise, leave outcome_1 empty.
     }
@@ -74,14 +74,14 @@ public:
 namespace operation {
 
     template <> struct parse <difference_parser_tag> {
-        template <class Parse, class Parser1, class Parser2, class Input>
-            difference_outcome <Parse, Parser1, Parser2, Input> operator() (
-                Parse const & parse,
+        template <class Policy, class Parser1, class Parser2, class Input>
+            difference_outcome <Policy, Parser1, Parser2, Input> operator() (
+                Policy const & policy,
                 difference_parser <Parser1, Parser2> const & parser,
                 Input const & input) const
         {
-            return difference_outcome <Parse, Parser1, Parser2, Input> (parse,
-                parser.parser_1, parser.parser_2, input);
+            return difference_outcome <Policy, Parser1, Parser2, Input> (
+                policy, parser.parser_1, parser.parser_2, input);
         }
     };
 
@@ -90,28 +90,28 @@ namespace operation {
         { return "difference"; }
     };
 
-    template <class Parse, class Parser1, class Parser2, class Input>
-        struct success <difference_outcome <Parse, Parser1, Parser2, Input>>
+    template <class Policy, class Parser1, class Parser2, class Input>
+        struct success <difference_outcome <Policy, Parser1, Parser2, Input>>
     {
-        bool operator() (difference_outcome <Parse, Parser1, Parser2, Input>
+        bool operator() (difference_outcome <Policy, Parser1, Parser2, Input>
                 const &outcome) const {
             return outcome.outcome_1 &&
                 ::parse_ll::success (*outcome.outcome_1);
         }
     };
 
-    template <class Parse, class Parser1, class Parser2, class Input>
-        struct output <difference_outcome <Parse, Parser1, Parser2, Input>>
+    template <class Policy, class Parser1, class Parser2, class Input>
+        struct output <difference_outcome <Policy, Parser1, Parser2, Input>>
     {
-        auto operator() (difference_outcome <Parse, Parser1, Parser2, Input>
+        auto operator() (difference_outcome <Policy, Parser1, Parser2, Input>
                 const & outcome) const
         RETURNS (::parse_ll::output (*outcome.outcome_1));
     };
 
-    template <class Parse, class Parser1, class Parser2, class Input>
-        struct rest <difference_outcome <Parse, Parser1, Parser2, Input>>
+    template <class Policy, class Parser1, class Parser2, class Input>
+        struct rest <difference_outcome <Policy, Parser1, Parser2, Input>>
     {
-        Input operator() (difference_outcome <Parse, Parser1, Parser2, Input>
+        Input operator() (difference_outcome <Policy, Parser1, Parser2, Input>
                 const & outcome) const {
             return ::parse_ll::rest (*outcome.outcome_1);
         }
