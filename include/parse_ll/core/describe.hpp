@@ -33,10 +33,9 @@ namespace parse_ll { namespace operation {
     /**
     Generic implementation that uses typeid.
     */
-    template <class Parser> struct describe <Parser> {
-        const char * operator() (Parser const &) const {
-            return typeid (Parser).name();
-        }
+    template <class ParserTag> struct describe <ParserTag> {
+        template <class Parser> const char * operator() (Parser const &) const
+        { return typeid (Parser).name(); }
     };
 
 }} // namespace parse_ll::operation

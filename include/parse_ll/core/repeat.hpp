@@ -55,6 +55,10 @@ public:
     : sub_parser (sub_parser), minimum (minimum), maximum (maximum) {}
 };
 
+struct repeat_parser_tag;
+template <class SubParser> struct decayed_parser_tag <repeat_parser <SubParser>>
+{ typedef repeat_parser_tag type; };
+
 class repeat_parser_maker_bounds {
     int minimum, maximum;
 public:
@@ -117,11 +121,10 @@ struct repeat_output_range_tag;
 
 namespace operation {
 
-    template <class Parse, class SubParser, class Input>
-        struct parse <Parse, repeat_parser <SubParser>, Input>
-    {
-        repeat_outcome <Parse, SubParser, Input, repeat_type::lazy> operator() (
-            Parse const & parse,
+    template <> struct parse <repeat_parser_tag> {
+        template <class Parse, class SubParser, class Input>
+            repeat_outcome <Parse, SubParser, Input, repeat_type::lazy>
+        operator() (Parse const & parse,
             repeat_parser <SubParser> const & parser, Input const & input) const
         {
             return repeat_outcome <Parse, SubParser, Input, repeat_type::lazy> (
@@ -129,8 +132,8 @@ namespace operation {
         }
     };
 
-    template <class SubParser> struct describe <repeat_parser <SubParser>> {
-        const char * operator() (repeat_parser <SubParser> const &) const
+    template <> struct describe <repeat_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "repeat"; }
     };
 

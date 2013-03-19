@@ -91,11 +91,19 @@ template <class Derived> struct parser_base {
     }
 };
 
+struct not_a_parser_tag;
+
+template <class Range, class Dummy = void> struct decayed_parser_tag
+{ typedef not_a_parser_tag type; };
+
+template <class Range, class Dummy = void> struct parser_tag
+: decayed_parser_tag <typename std::decay <Range>::type> {};
+
 /*** operation ***/
 namespace operation {
 
-    // Will be instantiated with unqualified Parse,  Parser and Input.
-    template <class Parse, class Parser, class Input, typename Enable = void>
+    // Will be called with Parse, Parser and Input.
+    template <class ParserTag, typename Enable = void>
         struct parse : unimplemented {};
 
     /**
@@ -103,19 +111,17 @@ namespace operation {
     The representation is not nested.
     Specialise this for every Parser class.
     */
-    template <class Parser, typename Enable = void> struct describe;
+    template <class ParserTag, typename Enable = void> struct describe;
 
 } // namespace operation
 
 namespace apply {
 
     template <class Parse, class Parser, class Input> struct parse
-    : operation::parse <typename std::decay <Parse>::type,
-        typename std::decay <Parser>::type,
-        typename std::decay <Input>::type> {};
+    : operation::parse <typename parser_tag <Parser>::type> {};
 
     template <class Parser> struct describe
-    : operation::describe <typename std::decay <Parser>::type> {};
+    : operation::describe <typename parser_tag <Parser>::type> {};
 
 } // namespace apply
 
@@ -208,10 +214,11 @@ namespace parse_policy {
         */
         template <class WrapperParse, class Parser, class Input>
             auto apply_parse (
-                WrapperParse const & wrapper_parse,
-                Parser const & parser, Input && input) const
+                WrapperParse && wrapper_parse,
+                Parser && parser, Input && input) const
         RETURNS (apply::parse <WrapperParse, Parser, Input>() (
-            wrapper_parse, parser, std::forward <Input> (input)))
+            std::forward <WrapperParse> (wrapper_parse),
+            std::forward <Parser> (parser), std::forward <Input> (input)))
 
         // No skipping.
         template <class Input> auto skip (Input && input) const

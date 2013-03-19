@@ -35,12 +35,16 @@ namespace parse_ll {
 struct end_parser : parser_base <end_parser> {};
 static const auto end = end_parser();
 
+struct end_parser_tag;
+template <> struct decayed_parser_tag <end_parser>
+{ typedef end_parser_tag type; };
+
 namespace operation {
 
-    template <class Parse, class Input> struct parse <Parse, end_parser, Input>
-    {
-        explicit_outcome <void, Input>
-            operator() (Parse const &, end_parser, Input const & input) const {
+    template <> struct parse <end_parser_tag> {
+        template <class Parse, class Input> explicit_outcome <void, Input>
+            operator() (Parse const &, end_parser, Input const & input) const
+        {
             if (::range::empty (input))
                 return explicit_outcome <void, Input> (input);
             else
@@ -48,7 +52,7 @@ namespace operation {
         }
     };
 
-    template <> struct describe <end_parser> {
+    template <> struct describe <end_parser_tag> {
         const char * operator() (end_parser const &) const
         { return "end"; }
     };

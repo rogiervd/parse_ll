@@ -107,15 +107,19 @@ public:
         Input, Output, Parser> (parser)) {}
 };
 
+struct rule_tag;
+template <class Input, class Output>
+    struct decayed_parser_tag <rule <Input, Output>>
+{ typedef rule_tag type; };
+
 namespace operation {
 
-    template <class Parse, class RuleInput, class Output, class ActualInput>
-        struct parse <Parse, rule <RuleInput, Output>, ActualInput>
-    {
+    template <> struct parse <rule_tag> {
+        template <class Parse, class RuleInput, class Output, class ActualInput>
         // Always generate a return type, to prevent strange errors.
-        explicit_outcome <Output, ActualInput> operator() (Parse const &,
-            rule <RuleInput, Output> const & parser, ActualInput const & input)
-                const
+            explicit_outcome <Output, ActualInput> operator() (
+                Parse const &, rule <RuleInput, Output> const & parser,
+                ActualInput const & input) const
         {
             // Generate an error here.
             static_assert (std::is_same <RuleInput, ActualInput>::value,
@@ -125,9 +129,8 @@ namespace operation {
         }
     };
 
-    template <class RuleInput, class Output>
-        struct describe <rule <RuleInput, Output>> {
-        const char * operator() (rule <RuleInput, Output> const &) const
+    template <> struct describe <rule_tag> {
+        template <class Rule> const char * operator() (Rule const &) const
         { return "rule (opaque)"; }
     };
 

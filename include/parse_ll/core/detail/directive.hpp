@@ -42,11 +42,16 @@ public:
     : sub_parser (sub_parser), convert_policy (convert_policy) {}
 };
 
+struct change_policy_tag;
+template <class SubParser, class ConvertPolicy>
+    struct decayed_parser_tag <change_policy <SubParser, ConvertPolicy>>
+{ typedef change_policy_tag type; };
+
 namespace operation {
 
-    template <class Parse, class SubParser, class ConvertPolicy, class Input>
-        struct parse <Parse, change_policy <SubParser, ConvertPolicy>, Input>
-    {
+    template <> struct parse <change_policy_tag> {
+        template <class Parse, class SubParser, class ConvertPolicy,
+            class Input>
         auto operator() (Parse const & parse,
             change_policy <SubParser, ConvertPolicy> const & directive,
             Input const & input) const
@@ -54,13 +59,11 @@ namespace operation {
             directive.sub_parser, input));
     };
 
-
-    template <class SubParser, class ConvertPolicy>
-        struct describe <change_policy <SubParser, ConvertPolicy>> {
-        const char * operator() (change_policy <SubParser, ConvertPolicy>
-            const &) const
+    template <> struct describe <change_policy_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "(policy change inside)"; }
     };
+
 } // namespace operation
 
 template <class ConvertPolicy> struct change_policy_directive {

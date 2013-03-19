@@ -66,40 +66,46 @@ public:
     optional_parser (SubParser const & sub_parser) : sub_parser (sub_parser) {}
 };
 
+struct optional_parser_tag;
+
+template <class SubParser>
+    struct decayed_parser_tag <optional_parser <SubParser>>
+{ typedef optional_parser_tag type; };
+
 namespace operation {
 
-    template <class Parse, class SubParser, class BareInput>
-        struct parse <Parse, optional_parser <SubParser>, BareInput>
-    {
-        typedef typename detail::parser_outcome <Parse, SubParser, BareInput
-            >::type sub_outcome_type;
-        typedef typename detail::outcome_output <sub_outcome_type>::type
-            sub_output_type;
-        typedef typename boost::mpl::if_ <std::is_same <sub_output_type, void>,
-            void, boost::optional <sub_output_type> >::type output_type;
+    template <> struct parse <optional_parser_tag> {
+        template <class Parse, class SubParser, class Input> struct result {
+            typedef typename std::decay <Input>::type bare_input_type;
+            typedef typename detail::parser_outcome <Parse, SubParser,
+                bare_input_type>::type sub_outcome_type;
+            typedef typename detail::outcome_output <sub_outcome_type>::type
+                sub_output_type;
+            typedef typename boost::mpl::if_ <
+                std::is_same <sub_output_type, void>,
+                void, boost::optional <sub_output_type>>::type output_type;
 
-        typedef successful <output_type, BareInput> outcome_type;
+            typedef successful <output_type, bare_input_type> type;
+        };
 
-        template <class Input>
-        outcome_type operator() (Parse const & parse,
-            optional_parser <SubParser> const & parser,
-            Input && input) const
+        template <class Parse, class SubParser, class Input>
+            typename result <Parse, SubParser, Input>::type
+        operator() (Parse const & parse,
+            optional_parser <SubParser> const & parser, Input && input) const
         {
-            sub_outcome_type sub_outcome
-                = parse (parser.sub_parser, std::forward <Input> (input));
+            auto sub_outcome =
+                parse (parser.sub_parser, std::forward <Input> (input));
             if (::parse_ll::success (sub_outcome))
-                return outcome_type (sub_outcome);
+                return sub_outcome;
             else
                 // Default-construct the output type, i.e. an empty
-                // boost::optional <...>.
-                // However, this also works with void.
-                return outcome_type (input);
+                // boost::optional <...>, or a void.
+                return typename result <Parse, SubParser, Input>::type (input);
         }
     };
 
-    template <class SubParser>
-        struct describe <optional_parser <SubParser>> {
-        const char * operator() (optional_parser <SubParser> const &) const
+    template <> struct describe <optional_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "optional"; }
     };
 } // namespace operation

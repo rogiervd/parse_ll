@@ -47,6 +47,10 @@ public:
     : parser_1 (parser_1), parser_2 (parser_2) {}
 };
 
+struct sequence_parser_tag;
+template <bool expect, class Parser1, class Parser2>
+    struct decayed_parser_tag <sequence_parser <expect, Parser1, Parser2>>
+{ typedef sequence_parser_tag type; };
 
 template <bool expect, class Parse, class Parser1, class Parser2, class Input,
     class Output1 = typename detail::parser_output <Parse, Parser1, Input
@@ -139,10 +143,9 @@ public:
 };
 
 namespace operation {
-    template <class Parse,
-            bool expect, class Parser1, class Parser2, class Input>
-        struct parse <Parse, sequence_parser <expect, Parser1, Parser2>, Input>
-    {
+    template <> struct parse <sequence_parser_tag> {
+        template <class Parse,
+                bool expect, class Parser1, class Parser2, class Input>
         sequence_outcome <expect, Parse, Parser1, Parser2, Input>
             operator() (Parse const & parse,
                 sequence_parser <expect, Parser1, Parser2>
@@ -153,10 +156,8 @@ namespace operation {
         }
     };
 
-    template <bool expect, class Parser1, class Parser2>
-        struct describe <sequence_parser <expect, Parser1, Parser2>> {
-        const char * operator() (sequence_parser <expect, Parser1, Parser2>
-            const &) const
+    template <> struct describe <sequence_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "sequence"; }
     };
 

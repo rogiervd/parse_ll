@@ -42,6 +42,11 @@ public:
     : parser_1 (parser_1), parser_2 (parser_2) {}
 };
 
+struct difference_parser_tag;
+template <class Parser1, class Parser2>
+    struct decayed_parser_tag <difference_parser <Parser1, Parser2>>
+{ typedef difference_parser_tag type; };
+
 /**
 Outcome for difference_parser.
 This tries out parser_2, and if it fails, saves the outcome of parser_1.
@@ -68,23 +73,20 @@ public:
 
 namespace operation {
 
-    template <class Parse, class Parser1, class Parser2, class Input>
-        struct parse <Parse, difference_parser <Parser1, Parser2>, Input>
-    {
-        difference_outcome <Parse, Parser1, Parser2, Input> operator() (
-            Parse const & parse,
-            difference_parser <Parser1, Parser2> const & parser,
-            Input const & input) const
+    template <> struct parse <difference_parser_tag> {
+        template <class Parse, class Parser1, class Parser2, class Input>
+            difference_outcome <Parse, Parser1, Parser2, Input> operator() (
+                Parse const & parse,
+                difference_parser <Parser1, Parser2> const & parser,
+                Input const & input) const
         {
             return difference_outcome <Parse, Parser1, Parser2, Input> (parse,
                 parser.parser_1, parser.parser_2, input);
         }
     };
 
-    template <class Parser1, class Parser2>
-        struct describe <difference_parser <Parser1, Parser2>> {
-        const char * operator() (difference_parser <Parser1, Parser2> const &)
-            const
+    template <> struct describe <difference_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "difference"; }
     };
 

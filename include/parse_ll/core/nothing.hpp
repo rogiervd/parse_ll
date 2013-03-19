@@ -35,17 +35,21 @@ namespace parse_ll {
 struct nothing_parser : parser_base <nothing_parser> {};
 static const auto nothing = nothing_parser();
 
+struct nothing_parser_tag;
+
+template <> struct decayed_parser_tag <nothing_parser>
+{ typedef nothing_parser_tag type; };
+
 namespace operation {
 
-    template <class Parse, class BareInput>
-        struct parse <Parse, nothing_parser, BareInput>
-    {
-        template <class Input> auto operator() (
+    template <> struct parse <nothing_parser_tag> {
+        template <class Parse, class Input> auto operator() (
             Parse const &, nothing_parser const &, Input && input) const
-        RETURNS (successful <void, BareInput> (std::forward <Input> (input)))
+        RETURNS (successful <void, typename std::decay <Input>::type> (
+            std::forward <Input> (input)))
     };
 
-    template <> struct describe <nothing_parser> {
+    template <> struct describe <nothing_parser_tag> {
         const char * operator() (nothing_parser const &) const
         { return "nothing"; }
     };

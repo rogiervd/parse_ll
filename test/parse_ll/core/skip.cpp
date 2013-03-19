@@ -42,20 +42,25 @@ Test skip and no_skip.
 /**
 Silly parser that just uses the skip parser.
 */
-struct silly_skip_parser : parse_ll::parser_base <silly_skip_parser> {
-    silly_skip_parser() {}
-};
+struct silly_skip_parser : parse_ll::parser_base <silly_skip_parser>
+{ silly_skip_parser() {} };
+
+struct silly_skip_parser_tag;
+
+namespace parse_ll {
+    template <> struct decayed_parser_tag <silly_skip_parser>
+    { typedef silly_skip_parser_tag type; };
+} // namespace parse_ll
 
 static const auto silly_skip = silly_skip_parser();
 
 namespace parse_ll { namespace operation {
 
-    template <class Parse, class Input>
-        struct parse <Parse, silly_skip_parser, Input>
-    {
-        parse_ll::explicit_outcome <void, Input>
-            operator() (Parse const & parse, silly_skip_parser const &,
-                Input const & input) const
+    template <> struct parse <silly_skip_parser_tag> {
+        template <class Parse, class Input>
+            parse_ll::explicit_outcome <void, Input>
+                operator() (Parse const & parse, silly_skip_parser const &,
+                    Input const & input) const
         {
             return parse_ll::explicit_outcome <void, Input> (
                 parse.skip (input));

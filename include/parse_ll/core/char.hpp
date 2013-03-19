@@ -44,6 +44,11 @@ public:
     char_parser (Match const & match) : match (match) {}
 };
 
+struct char_parser_tag;
+
+template <class Match> struct decayed_parser_tag <char_parser <Match>>
+{ typedef char_parser_tag type; };
+
 /**
 Outcome that, if successful, returns the first element of the input as output
 and the rest of the input as rest.
@@ -57,11 +62,10 @@ public:
 
 namespace operation {
 
-    template <class Parse, class Match, class Input>
-        struct parse <Parse, char_parser <Match>, Input>
-    {
-        char_outcome <Input> operator() (Parse const & parse,
-            char_parser <Match> const & parser, Input const & input) const
+    template <> struct parse <char_parser_tag> {
+        template <class Parse, class Match, class Input>
+            char_outcome <Input> operator() (Parse const & parse,
+                char_parser <Match> const & parser, Input const & input) const
         {
             if (!::range::empty (input)
                 && parser.match (::range::first (input)))
@@ -72,8 +76,8 @@ namespace operation {
         }
     };
 
-    template <class Match> struct describe <char_parser <Match>> {
-        const char * operator() (char_parser <Match> const &) const
+    template <> struct describe <char_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "character"; }
     };
 
@@ -128,6 +132,8 @@ struct any_char_parser : char_parser <match_any>
     }
 };
 
+template <> struct decayed_parser_tag <any_char_parser>
+{ typedef char_parser_tag type; };
 
 static const auto char_ = any_char_parser();
 

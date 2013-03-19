@@ -43,6 +43,11 @@ public:
     : sub_parser (sub_parser), actor (actor) {}
 };
 
+struct transform_parser_tag;
+template <class SubParser, class Actor>
+    struct decayed_parser_tag <transform_parser <SubParser, Actor>>
+{ typedef transform_parser_tag type; };
+
 template <class Parser, class Actor>
     inline transform_parser <Parser, Actor> transform (
         Parser const & parser, Actor const & actor)
@@ -66,20 +71,17 @@ public:
 
 namespace operation {
 
-    template <class Parse, class SubParser, class Actor, class Input>
-        struct parse <Parse, transform_parser <SubParser, Actor>, Input>
-    {
-        auto operator() (Parse const & parse,
-            transform_parser <SubParser, Actor> const & parser,
-            Input const & input) const
+    template <> struct parse <transform_parser_tag> {
+        template <class Parse, class SubParser, class Actor, class Input>
+            auto operator() (Parse const & parse,
+                transform_parser <SubParser, Actor> const & parser,
+                Input const & input) const
         RETURNS (transform_outcome <Parse, SubParser, Actor, Input> (
             parse, parser.sub_parser, input, parser.actor))
     };
 
-    template <class SubParser, class Actor>
-        struct describe <transform_parser <SubParser, Actor>> {
-        const char * operator() (transform_parser <SubParser, Actor> const &)
-            const
+    template <> struct describe <transform_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "transform"; }
     };
 

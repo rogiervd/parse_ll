@@ -48,6 +48,11 @@ public:
     : parser_1 (parser_1), parser_2 (parser_2) {}
 };
 
+struct alternative_parser_tag;
+template <class Parser1, class Parser2>
+    struct decayed_parser_tag <alternative_parser <Parser1, Parser2>>
+{ typedef alternative_parser_tag type; };
+
 template <class... Parsers> struct make_alternative;
 
 /**
@@ -102,48 +107,52 @@ RETURNS (alternative (
 
 namespace operation {
 
-    template <class Parse, class Parser1, class Parser2, class Input>
-        struct parse <Parse, alternative_parser <Parser1, Parser2>, Input>
-    {
-        typedef typename detail::parser_outcome <Parse, Parser1, Input>::type
-            outcome_1_type;
-        typedef typename detail::parser_outcome <Parse, Parser2, Input>::type
-            outcome_2_type;
-        typedef typename detail::outcome_output <outcome_1_type>::type
-            output_1_type;
-        typedef typename detail::outcome_output <outcome_2_type>::type
-            output_2_type;
-
-        typedef typename std::decay <decltype (true ?
-                ::parse_ll::output (std::declval <outcome_1_type>()) :
-                ::parse_ll::output (std::declval <outcome_2_type>()))
-            >::type output_type;
-        typedef explicit_outcome <output_type, Input> outcome_type;
-
-        outcome_type operator() (Parse const & parse,
-                alternative_parser <Parser1, Parser2> const & parser,
-                Input const & input) const
+    template <> struct parse <alternative_parser_tag> {
+        template <class Parse, class Parser1, class Parser2, class Input>
+            struct result
         {
+            typedef typename detail::parser_outcome <Parse, Parser1, Input
+                >::type outcome_1_type;
+            typedef typename detail::parser_outcome <Parse, Parser2, Input
+                >::type outcome_2_type;
+            typedef typename detail::outcome_output <outcome_1_type>::type
+                output_1_type;
+            typedef typename detail::outcome_output <outcome_2_type>::type
+                output_2_type;
+
+            typedef typename std::decay <decltype (true ?
+                    ::parse_ll::output (std::declval <outcome_1_type>()) :
+                    ::parse_ll::output (std::declval <outcome_2_type>()))
+                >::type output_type;
+            typedef explicit_outcome <output_type, Input> type;
+        };
+
+        template <class Parse, class Parser1, class Parser2, class Input>
+            typename result <Parse, Parser1, Parser2, Input>::type
+        operator() (Parse const & parse,
+            alternative_parser <Parser1, Parser2> const & parser,
+            Input const & input) const
+        {
+            typedef typename result <Parse, Parser1, Parser2, Input>::type
+                result_type;
             {
                 // Try parser 1
-                outcome_1_type outcome_1 = parse (parser.parser_1, input);
+                auto outcome_1 = parse (parser.parser_1, input);
                 if (::parse_ll::success (outcome_1))
-                    return outcome_type (std::move (outcome_1));
+                    return result_type (std::move (outcome_1));
                 // Failed; destruct outcome_1.
             }
             // Try parser 2
-            outcome_2_type outcome_2 = parse (parser.parser_2, input);
+            auto outcome_2 = parse (parser.parser_2, input);
             if (::parse_ll::success (outcome_2))
-                return outcome_type (std::move (outcome_2));
+                return result_type (std::move (outcome_2));
             // Otherwise, fail.
             return failed();
         }
     };
 
-    template <class Parser1, class Parser2>
-        struct describe <alternative_parser <Parser1, Parser2>> {
-        const char * operator() (alternative_parser <Parser1, Parser2> const &)
-            const
+    template <> struct describe <alternative_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "alternative"; }
     };
 

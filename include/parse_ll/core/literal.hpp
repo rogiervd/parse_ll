@@ -48,6 +48,11 @@ public:
     literal_parser (Literal const & literal) : literal (literal) {}
 };
 
+struct literal_parser_tag;
+
+template <class Literal> struct decayed_parser_tag <literal_parser <Literal>>
+{ typedef literal_parser_tag type; };
+
 inline literal_parser <std::string> literal (char c) {
     return literal_parser <std::string> (std::string (1, c));
 }
@@ -58,9 +63,8 @@ inline literal_parser <std::string> literal (std::string const & s) {
 
 namespace operation {
 
-    template <class Parse, class Literal, class Input>
-        struct parse <Parse, literal_parser <Literal>, Input>
-    {
+    template <> struct parse <literal_parser_tag> {
+        template <class Parse, class Literal, class Input>
         explicit_outcome <void, Input> operator() (Parse const & parse,
             literal_parser <Literal> const & parser, Input input) const
         {
@@ -80,9 +84,8 @@ namespace operation {
         }
     };
 
-    template <class Literal>
-        struct describe <literal_parser <Literal>> {
-        const char * operator() (literal_parser <Literal> const &) const
+    template <> struct describe <literal_parser_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "literal"; }
     };
 

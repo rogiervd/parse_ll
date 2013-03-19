@@ -38,6 +38,12 @@ template <class SkipParser, bool pad>
 template <class SubParser, class SkipParser, bool pad>
     struct skip_inside;
 
+struct skip_inside_tag;
+
+template <class SubParser, class SkipParser, bool pad>
+    struct decayed_parser_tag <skip_inside <SubParser, SkipParser, pad>>
+{ typedef skip_inside_tag type; };
+
 /**
 Create a parser that uses a specific skip parser inside the sub-parser.
 This is used as, for example, skip (whitespace) [sub_parser].
@@ -143,39 +149,39 @@ namespace operation {
     skip_pad() wraps the outcome, whereas skip() can get away with just
     calling a newly constructed skip_policy instead of original_parser.
     */
-    template <class OriginalPolicy,
-        class SubParser, class SkipParser, bool pad, class Input>
-    struct parse <callable::parse <OriginalPolicy>,
-        skip_inside <SubParser, SkipParser, pad>, Input>
-    {
-        typedef callable::parse <parse_policy::skip_policy <
-            SkipParser, OriginalPolicy>> new_parse_type;
-
+    template <> struct parse <skip_inside_tag> {
         // No padding.
+        template <class OriginalPolicy,
+            class SubParser, class SkipParser, class Input>
         auto operator() (
             callable::parse <OriginalPolicy> const & original_parse,
             skip_inside <SubParser, SkipParser, false> const &
                 parser, Input const & input) const
         RETURNS (
             // Produce new parse function that wraps original_parse.
-            (new_parse_type (parser.skip_parser, original_parse.policy()))
+            (callable::parse <parse_policy::skip_policy <
+                SkipParser, OriginalPolicy>> (
+                parser.skip_parser, original_parse.policy()))
             // Call it.
-                (parser.sub_parser, input));
+                (parser.sub_parser, input))
 
         // With padding: use skip_inside_pad_outcome.
+        template <class OriginalPolicy,
+            class SubParser, class SkipParser, class Input>
         auto operator() (
             callable::parse <OriginalPolicy> const & original_parse,
             skip_inside <SubParser, SkipParser, true> const &
                 parser, Input const & input) const
-        RETURNS (skip_inside_pad_outcome <new_parse_type, SubParser, Input> (
-            new_parse_type (parser.skip_parser, original_parse.policy()),
-            parser.sub_parser, input));
+        RETURNS (skip_inside_pad_outcome <
+            callable::parse <parse_policy::skip_policy <
+                SkipParser, OriginalPolicy>>, SubParser, Input> (
+            callable::parse <parse_policy::skip_policy <SkipParser,
+                OriginalPolicy>> (parser.skip_parser, original_parse.policy()),
+            parser.sub_parser, input))
     };
 
-    template <class SubParser, class SkipParser, bool pad>
-        struct describe <skip_inside <SubParser, SkipParser, pad>> {
-        const char * operator() (skip_inside <SubParser, SkipParser, pad>
-            const &) const
+    template <> struct describe <skip_inside_tag> {
+        template <class Parser> const char * operator() (Parser const &) const
         { return "(change skip parser used inside)"; }
     };
 

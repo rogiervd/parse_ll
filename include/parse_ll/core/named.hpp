@@ -44,23 +44,21 @@ description of the parser.
 */
 struct named_parser {};
 
+struct named_parser_tag;
+template <class Parser> struct decayed_parser_tag <Parser,
+    typename boost::enable_if <std::is_base_of <named_parser, Parser>>::type>
+{ typedef named_parser_tag type; };
+
 namespace operation {
-    template <class Parse, class Parser, class Input>
-        struct parse <Parse, Parser, Input,
-            typename boost::enable_if <
-                std::is_base_of <named_parser, Parser>>::type>
-    {
-        auto operator() (Parse const & parse,
+    template <> struct parse <named_parser_tag> {
+        template <class Parse, class Parser, class Input>
+            auto operator() (Parse const & parse,
                 Parser const & parser, Input const & input) const
         RETURNS (parse (parser.implementation(), input))
     };
 
-    template <class Parser>
-        struct describe <Parser,
-            typename boost::enable_if <
-                std::is_base_of <named_parser, Parser>>::type>
-    {
-        auto operator() (Parser const & parser) const
+    template <> struct describe <named_parser_tag> {
+        template <class Parser> auto operator() (Parser const & parser) const
         RETURNS (parser.description())
     };
 }

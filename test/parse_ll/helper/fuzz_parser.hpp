@@ -39,6 +39,14 @@ form of memory debugging.
 template <class Parse, class SubParser, class Input> class fuzz_outcome;
 template <class SubParser, class DerivedSubParser> struct fuzz_parser;
 
+struct fuzz_parser_tag;
+
+namespace parse_ll {
+    template <class SubParser, class DerivedSubParser>
+        struct decayed_parser_tag <fuzz_parser <SubParser, DerivedSubParser>>
+    { typedef fuzz_parser_tag type; };
+} // namespace parse_ll
+
 template <class Parser, class DerivedParser>
     inline auto fuzz_slicing (
         Parser const & parser, parse_ll::parser_base <DerivedParser> const &)
@@ -211,9 +219,9 @@ public:
 
 namespace parse_ll { namespace operation {
 
-    template <class Parse, class SubParser, class DerivedSubParser, class Input>
-        struct parse <Parse, fuzz_parser <SubParser, DerivedSubParser>, Input>
-    {
+    template <> struct parse <fuzz_parser_tag> {
+        template <class Parse, class SubParser, class DerivedSubParser,
+            class Input>
         fuzz_outcome <Parse, DerivedSubParser, Input> operator() (
             Parse const & parse,
             fuzz_parser <SubParser, DerivedSubParser> const & parser,
