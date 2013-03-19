@@ -41,6 +41,10 @@ Test rule.
 #include "../helper/object.hpp"
 #include "../helper/fuzz_parser.hpp"
 
+#include "parse_ll/core/whitespace.hpp"
+#include "parse_ll/core/skip.hpp"
+#include "parse_ll/core/no_skip.hpp"
+
 BOOST_AUTO_TEST_SUITE(test_parse_rule)
 
 BOOST_AUTO_TEST_CASE (test_rule) {
@@ -154,6 +158,105 @@ BOOST_AUTO_TEST_CASE (test_rule) {
             BOOST_CHECK_EQUAL (std::get <2> (o), 3);
             BOOST_CHECK (empty (rest (result)));
         }
+    }
+}
+
+// Test propagation of skip parser.
+BOOST_AUTO_TEST_CASE (test_rule_skip_parser) {
+    using range::empty;
+
+    using parse_ll::parse;
+    using parse_ll::success;
+    using parse_ll::output;
+    using parse_ll::rest;
+
+    using boost::phoenix::val;
+    typedef range::result_of::view <std::string &>::type input_type;
+    {
+        std::string r ("a b");
+        {
+            // Polymorphic skip parser.
+            parse_ll::rule <input_type> parser =
+                parse_ll::char_ ('a') >> fuzz (parse_ll::char_ ('b'));
+            {
+                auto result = parse (parser, r);
+                BOOST_CHECK (!success (result));
+            }
+            {
+                auto result = parse (
+                    parse_ll::skip (parse_ll::whitespace) [parser], r);
+                BOOST_CHECK (success (result));
+            }
+            {
+                auto result = parse (
+                    parse_ll::skip (fuzz (parse_ll::one_horizontal_space)) [
+                        parser], r);
+                BOOST_CHECK (success (result));
+            }
+        }
+        {
+            // Propagate a given skip parser.
+            auto skip_parser = parse_ll::whitespace;
+            parse_ll::rule <input_type, void, decltype (skip_parser)> parser =
+                parse_ll::char_ ('a') >> parse_ll::char_ ('b');
+            /*{
+                // This fails at compile time because the skip parser is of the
+                // wrong type.
+                auto result = parse (parser, r);
+            }*/
+            {
+                auto p = fuzz (
+                    parse_ll::skip (parse_ll::whitespace) [parser]);
+                auto result = parse (p, r);
+                BOOST_CHECK (success (result));
+            }
+        }
+        {
+            // Promise to use a different skip parser inside.
+            parse_ll::rule <input_type, void,
+                parse_ll::rule_explicit_skip_parser> parser =
+                    fuzz (parse_ll::no_skip [
+                        parse_ll::char_ ('a') >> parse_ll::char_ ('b')]);
+            {
+                auto result = parse (parser, r);
+                BOOST_CHECK (!success (result));
+            }
+            {
+                auto p = parse_ll::skip (parse_ll::whitespace) [fuzz (parser)];
+                auto result = parse (p, r);
+                BOOST_CHECK (!success (result));
+            }
+        }
+        {
+            parse_ll::rule <input_type, void,
+                parse_ll::rule_explicit_skip_parser> parser =
+                    parse_ll::skip (fuzz (parse_ll::whitespace)) [
+                        parse_ll::char_ ('a') >> parse_ll::char_ ('b')];
+            {
+                auto p = fuzz (parser);
+                auto result = parse (p, r);
+                BOOST_CHECK (success (result));
+            }
+            {
+                auto p = fuzz (parse_ll::skip (parse_ll::whitespace) [parser]);
+                auto result = parse (p, r);
+                BOOST_CHECK (success (result));
+            }
+            {
+                auto p = parse_ll::skip (parse_ll::char_ ('a')) [parser];
+                auto result = parse (p, r);
+                BOOST_CHECK (success (result));
+            }
+        }
+        /*{
+            parse_ll::rule <input_type, void,
+                parse_ll::rule_explicit_skip_parser> parser =
+                    parse_ll::char_ ('a') >> parse_ll::char_ ('b');
+            {
+                // Compile error because there is no skip parser inside.
+                auto result = parse (parser, r);
+            }
+        }*/
     }
 }
 

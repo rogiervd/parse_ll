@@ -39,7 +39,8 @@ template <bool Expect, class Parser1, class Parser2> struct sequence_parser;
 template <class Parser1, class Parser2> struct difference_parser;
 
 // These are useful for other programs.
-template <class Input, class Output = void> struct rule;
+template <class Input, class Output = void, class SkipParser = void>
+    struct rule;
 struct named_parser;
 
 namespace parse_policy {
