@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PARSE_LL_BASE_FWD_HPP
 #define PARSE_LL_BASE_FWD_HPP
 
+#include <type_traits>
+#include <boost/mpl/not.hpp>
+
 namespace parse_ll {
 
 // These are required for core.hpp

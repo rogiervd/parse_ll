@@ -1,4 +1,5 @@
 alias "core" :
+    [ run fwd.cpp ]
     [ run outcome.cpp ]
     [ run nothing.cpp ]
     [ run literal.cpp ]
