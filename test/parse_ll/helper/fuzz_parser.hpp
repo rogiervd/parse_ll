@@ -111,6 +111,28 @@ public:
         other.sub_parser.reset();
         check = initialised;
     }
+
+    // Perform a deep copy-assignment.
+    fuzz_parser & operator = (fuzz_parser const & other) {
+        other.assert_initialised();
+        sub_parser = std::shared_ptr <DerivedSubParser> (
+            new DerivedSubParser (*other.sub_parser));
+        *sub_parser = *other.sub_parser;
+        check = initialised;
+        return *this;
+    }
+
+    // Perform a deep move-assignment.
+    fuzz_parser & operator = (fuzz_parser && other) {
+        other.assert_initialised();
+        sub_parser = std::shared_ptr <DerivedSubParser> (
+            new DerivedSubParser (std::move (*other.sub_parser)));
+        *sub_parser = std::move (*other.sub_parser);
+        // Make sure to delete other.sub_parser.
+        other.sub_parser.reset();
+        check = initialised;
+        return *this;
+    }
 };
 
 /**
@@ -134,9 +156,10 @@ public:
     : check (uninitialised), sub_parser (sub_parser) {
         std::unique_ptr <sub_outcome_type> temporary_outcome;
         {
-            // The parse function is only guaranteed to exist as long as it is
+            // The policy is only guaranteed to exist as long as it is
             // being called...
             std::unique_ptr <Policy> temporary_policy (new Policy (policy));
+            *temporary_policy = policy;
             temporary_outcome = std::unique_ptr <sub_outcome_type> (
                 new sub_outcome_type (parse_ll::parse (
                     *temporary_policy, *sub_parser, input)));
