@@ -25,8 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace parse_ll {
 
-template <class Range, class Dummy = void> struct decayed_parser_tag;
-template <class Range, class Dummy = void> struct parser_tag;
+template <class Parser, class Enable = void> struct decayed_parser_tag;
+template <class Parser, class Enable = void> struct parser_tag;
+template <class Parser> struct is_parser;
 
 // These are required for core.hpp
 struct nothing_parser;

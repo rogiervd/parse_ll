@@ -28,6 +28,7 @@ Base classes for parser.
 #include <type_traits>
 
 #include <boost/mpl/if.hpp>
+#include <boost/mpl/not.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include "utility/returns.hpp"
@@ -44,11 +45,41 @@ namespace parse_ll {
 
 struct not_a_parser_tag;
 
-template <class Range, class Dummy> struct decayed_parser_tag
+template <class Parser, class Enable /* = void */> struct decayed_parser_tag
 { typedef not_a_parser_tag type; };
 
-template <class Range, class Dummy> struct parser_tag
-: decayed_parser_tag <typename std::decay <Range>::type> {};
+template <class Parser, class Enable /* = void */> struct parser_tag
+: decayed_parser_tag <typename std::decay <Parser>::type> {};
+
+namespace detail {
+
+    // Check whether parser_tag <Parser> is defined.
+    template <class Parser> struct has_parser_tag
+    : boost::mpl::not_ <std::is_same <
+        typename parser_tag <Parser>::type, not_a_parser_tag>> {};
+
+    // Check whether Parser derives from parser_base <...>.
+    template <class Parser> struct has_parser_base_impl {
+        template <class Parser2>
+            static rime::true_type test_base (parser_base <Parser2> const *);
+        static rime::false_type test_base (void *);
+
+        typedef decltype (test_base (
+            std::declval <typename std::decay <Parser>::type *>())) type;
+    };
+
+    template <class Parser> struct has_parser_base
+    : has_parser_base_impl <Parser>::type {};
+
+} // namespace detail
+
+template <class Parser> struct is_parser
+: detail::has_parser_tag <Parser>
+{
+    static_assert (detail::has_parser_tag <Parser>::value ==
+        detail::has_parser_base <Parser>::value,
+        "All parsers should have a tag and derive from parser_base.");
+};
 
 /*** operation ***/
 namespace operation {
@@ -85,7 +116,11 @@ namespace apply {
 
     template <class ... Arguments> struct describe;
     template <class Parser> struct describe <Parser>
-    : operation::describe <typename parser_tag <Parser>::type> {};
+    : operation::describe <typename parser_tag <Parser>::type>
+    {
+        static_assert (is_parser <Parser>::value,
+            "describe (p): p must be a parser.");
+    };
 
 } // namespace apply
 
@@ -169,6 +204,9 @@ namespace apply {
                 Apply, meta::vector <Policy, Parser, Input>,
                 typename boost::enable_if <range::is_view <Input>>::type>
         {
+            static_assert (is_parser <Parser>::value,
+                "parse (policy, p, input): p must be a parser.");
+
             auto operator() (Policy && policy, Parser && parser, Input && input)
                 const
             RETURNS (policy.template apply_parse <Apply> (
@@ -198,6 +236,9 @@ namespace apply {
             struct arrange_parse_parameters <
                 Apply, meta::vector <Parser, Input>>
         {
+            static_assert (is_parser <Parser>::value,
+                "parse (p, input): p must be a parser.");
+
             arrange_parse_parameters <Apply, meta::vector <
                     parse_policy::direct const &, Parser, Input>>
                 implementation;
