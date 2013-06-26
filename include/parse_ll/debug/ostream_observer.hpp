@@ -29,10 +29,9 @@ Observer that prints the trace out to a std::ostream.
 // For std::cout, which is a default parameter for ostream_observer.
 #include <iostream>
 
-namespace parse_ll {
+#include "parse_ll/support/text_location_range.hpp"
 
-// Forward definition
-template <class Range> class text_location_range;
+namespace parse_ll {
 
 class ostream_observer {
     std::ostream * stream;
@@ -46,12 +45,14 @@ class ostream_observer {
         return *stream;
     }
 
-    template <class Input> void
-        print_input (Input start, Input const & finish) const {
+    template <class Input> void print_input (Input start, Input const & finish)
+        const
+    {
         *stream << " \"";
-        for (int i = 0; start != finish && i != 60; ++ i, start = drop (start))
+        for (int i = 0; start != finish && i != 60;
+            ++ i, start = range::drop (start))
         {
-            char c = first (start);
+            char c = range::first (start);
             if (c >= 0x20 && c < 0x80)
                 *stream << c;
             else {
@@ -73,13 +74,15 @@ class ostream_observer {
     }
 
     template <class Input> void
-        describe_start_input (text_location_range <Input> const & start) const {
+        describe_start_input (range::text_location_range <Input> const & start)
+        const
+    {
         *stream << " ("
             << start.line() + 1 << "," << start.column() + 1 << ")";
     }
     template <class Input> void
-        describe_consumed (text_location_range <Input> const & start,
-            text_location_range <Input> const & finish) const {
+        describe_consumed (range::text_location_range <Input> const & start,
+            range::text_location_range <Input> const & finish) const {
         *stream << " ("
             //<< start.line() + 1 << "," << start.column() + 1 << " - "
             << finish.line() + 1 << "," << finish.column() + 1 << ")";
