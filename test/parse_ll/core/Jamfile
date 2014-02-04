@@ -1,22 +1,5 @@
 alias "core" :
-    [ run fwd.cpp ]
-    [ run outcome.cpp ]
-    [ run nothing.cpp ]
-    [ run literal.cpp ]
-    [ run char.cpp ]
-    [ run skip.cpp ]
-    [ run end.cpp ]
-    [ run optional.cpp ]
-    [ run transform.cpp ]
-    [ run alternative.cpp ]
-    [ run repeat.cpp ]
-    [ run sequence.cpp ]
-    [ run difference.cpp ]
-    [ run named.cpp ]
-    [ run rule.cpp ]
-
-    [ run describe.cpp ]
-
-    [ run whitespace.cpp ]
+    # Run all .cpp files in this directory as tests.
+    [ run_glob *.cpp ]
     ;
 

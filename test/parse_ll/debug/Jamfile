@@ -1,4 +1,5 @@
 alias "debug" :
-    [ run trace.cpp ]
+    # Run all .cpp files in this directory as tests.
+    [ run_glob *.cpp ]
     ;
 

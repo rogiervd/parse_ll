@@ -1,8 +1,5 @@
 alias "number" :
-    [ run digit.cpp ]
-    [ run sign.cpp ]
-    [ run unsigned.cpp ]
-    [ run int.cpp ]
-    [ run float.cpp ]
+    # Run all .cpp files in this directory as tests.
+    [ run_glob *.cpp ]
     ;
 
