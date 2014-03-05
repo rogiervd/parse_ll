@@ -220,7 +220,8 @@ namespace apply {
                 Apply, meta::vector <Policy, Parser, Input>,
                 typename boost::disable_if <range::is_view <Input>>::type>
         {
-            typedef typename range::result_of::view <Input>::type view_type;
+            typedef typename range::result_of <range::callable::view (Input)
+                >::type view_type;
             arrange_parse_parameters <Apply,
                 meta::vector <Policy, Parser, view_type>> implementation;
 

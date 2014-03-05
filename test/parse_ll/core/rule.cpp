@@ -56,7 +56,8 @@ BOOST_AUTO_TEST_CASE (test_rule) {
     using parse_ll::rest;
 
     using boost::phoenix::val;
-    typedef range::result_of::view <std::string &>::type input_type;
+    typedef range::result_of <range::callable::view (std::string &)>::type
+        input_type;
     {
         std::string r ("");
         {
@@ -171,7 +172,8 @@ BOOST_AUTO_TEST_CASE (test_rule_skip_parser) {
     using parse_ll::rest;
 
     using boost::phoenix::val;
-    typedef range::result_of::view <std::string &>::type input_type;
+    typedef range::result_of <range::callable::view (std::string &)>::type
+        input_type;
     {
         std::string r ("a b");
         {
