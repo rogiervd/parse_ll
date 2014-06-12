@@ -21,9 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Test file_range.
 */
 
-#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE file_range
-#include <boost/test/unit_test.hpp>
+#include "utility/test/boost_unit_test.hpp"
 
 #include "parse_ll/support/file_range.hpp"
 

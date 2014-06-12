@@ -21,9 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Test floating-point parser.
 */
 
-#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE float_parser
-#include <boost/test/unit_test.hpp>
+#include "utility/test/boost_unit_test.hpp"
 
 #include "parse_ll/number/float.hpp"
 

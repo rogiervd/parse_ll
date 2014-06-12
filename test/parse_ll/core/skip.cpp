@@ -21,9 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Test skip and no_skip.
 */
 
-#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE skip_no_skip
-#include <boost/test/unit_test.hpp>
+#include "utility/test/boost_unit_test.hpp"
 
 #include "parse_ll/core/no_skip.hpp"
 #include "parse_ll/core/skip.hpp"
