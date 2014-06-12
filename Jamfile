@@ -2,6 +2,7 @@ project /parse_ll :
     requirements
     <library>/range//range
     <library>/rime//rime
+    <library>/utility//utility
     <library>/meta//meta
     ;
 
