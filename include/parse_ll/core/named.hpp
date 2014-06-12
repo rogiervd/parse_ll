@@ -54,12 +54,12 @@ namespace operation {
         template <class Policy, class Parser, class Input>
             auto operator() (Policy const & policy,
                 Parser const & parser, Input const & input) const
-        RETURNS (parse_ll::parse (policy, parser.implementation(), input))
+        RETURNS (parse_ll::parse (policy, parser.implementation(), input));
     };
 
     template <> struct describe <named_parser_tag> {
         template <class Parser> auto operator() (Parser const & parser) const
-        RETURNS (parser.description())
+        RETURNS (parser.description());
     };
 }
 

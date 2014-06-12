@@ -136,7 +136,7 @@ namespace detail {
             auto apply_parse (Policy const & policy, Parser const & parser,
                 ActualInput && input) const
         RETURNS (actual_policy->template apply_parse <Apply> (
-            policy, parser, std::forward <ActualInput> (input)))
+            policy, parser, std::forward <ActualInput> (input)));
 
         skip_parser_type const & skip_parser() const
         { return actual_policy->skip_parser(); }

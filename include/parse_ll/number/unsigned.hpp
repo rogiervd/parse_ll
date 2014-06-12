@@ -67,7 +67,7 @@ PARSE_LL_DEFINE_NAMED_PARSER_TEMPLATE ("unsigned", unsigned_parser, Result,
     (no_skip [+digit] [collect_integer <Result>()]));
 
 template <typename Result>
-    inline auto unsigned_as() RETURNS (unsigned_parser <Result>())
+    inline auto unsigned_as() RETURNS (unsigned_parser <Result>());
 static const auto unsigned_ = unsigned_as <unsigned>();
 
 } // namespace parse_ll

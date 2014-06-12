@@ -50,11 +50,11 @@ namespace parse_ll {
 template <class Parser, class DerivedParser>
     inline auto fuzz_slicing (
         Parser const & parser, parse_ll::parser_base <DerivedParser> const &)
-RETURNS (fuzz_parser <Parser, DerivedParser> (parser))
+RETURNS (fuzz_parser <Parser, DerivedParser> (parser));
 
 template <class SubParser>
     inline auto fuzz (SubParser const & sub_parser)
-RETURNS (fuzz_slicing (sub_parser, sub_parser))
+RETURNS (fuzz_slicing (sub_parser, sub_parser));
 
 /**
 Wrap a parser for debugging, to stress-test it.

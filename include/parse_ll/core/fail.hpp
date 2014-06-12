@@ -47,7 +47,7 @@ namespace operation {
     template <> struct parse <fail_parser_tag> {
         template <class Policy, class Input> auto operator() (
             Policy const &, fail_parser const &, Input &&) const
-        RETURNS (failed())
+        RETURNS (failed());
     };
 
     template <> struct skip_over <fail_parser_tag> {

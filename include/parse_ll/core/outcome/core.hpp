@@ -119,17 +119,17 @@ namespace callable {
 
     struct success {
         template <class Outcome> auto operator() (Outcome && outcome) const
-        RETURNS (apply::success <Outcome>() (std::forward <Outcome> (outcome)))
+        RETURNS (apply::success <Outcome>() (std::forward <Outcome> (outcome)));
     };
 
     struct output {
         template <class Outcome> auto operator() (Outcome && outcome) const
-        RETURNS (apply::output <Outcome>() (std::forward <Outcome> (outcome)))
+        RETURNS (apply::output <Outcome>() (std::forward <Outcome> (outcome)));
     };
 
     struct rest {
         template <class Outcome> auto operator() (Outcome && outcome) const
-        RETURNS (apply::rest <Outcome>() (std::forward <Outcome> (outcome)))
+        RETURNS (apply::rest <Outcome>() (std::forward <Outcome> (outcome)));
     };
 
 } // namespace callable

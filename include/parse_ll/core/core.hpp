@@ -145,7 +145,7 @@ namespace callable {
             template <class ... Arguments>
                 auto operator() (Arguments && ... arguments) const
             RETURNS (Apply <Arguments ...>() (
-                std::forward <Arguments> (arguments) ...))
+                std::forward <Arguments> (arguments) ...));
         };
     } // namespace detail
 
@@ -177,7 +177,7 @@ namespace parse_policy {
                 Input && input) const
         RETURNS (typename Apply::template
             apply <Policy const &, Parser const &, Input>() (
-                policy, parser, std::forward <Input> (input)))
+                policy, parser, std::forward <Input> (input)));
 
         /**
         \return The skip parser to use between elements
@@ -211,7 +211,7 @@ namespace apply {
                 const
             RETURNS (policy.template apply_parse <Apply> (
                 policy, std::forward <Parser> (parser),
-                std::forward <Input> (input)))
+                std::forward <Input> (input)));
         };
 
         // Policy, Parser, and Input which is not a view: call view (input).
@@ -229,7 +229,7 @@ namespace apply {
                 const
             RETURNS (implementation (std::forward <Policy> (policy),
                 std::forward <Parser> (parser),
-                range::view (std::forward <Input> (input))))
+                range::view (std::forward <Input> (input))));
         };
 
         // Just Parser, and Input: prepend the default policy.
@@ -246,7 +246,7 @@ namespace apply {
 
             auto operator() (Parser && parser, Input && input) const
             RETURNS (implementation (parse_policy::direct(),
-                std::forward <Parser> (parser), std::forward <Input> (input)))
+                std::forward <Parser> (parser), std::forward <Input> (input)));
         };
 
         template <template <class, class> class Operation> struct apply_parse {

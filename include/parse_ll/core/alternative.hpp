@@ -102,7 +102,7 @@ template <class Parser1, class Parser2, class ... Parsers> inline
     auto alternative (Parser1 const & parser_1,
         Parser2 const &parser_2, Parsers const & ... parsers)
 RETURNS (alternative (
-    alternative_parser <Parser1, Parser2> (parser_1, parser_2), parsers...))
+    alternative_parser <Parser1, Parser2> (parser_1, parser_2), parsers...));
 */
 
 namespace operation {

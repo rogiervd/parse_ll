@@ -77,7 +77,7 @@ namespace operation {
                 transform_parser <SubParser, Actor> const & parser,
                 Input const & input) const
         RETURNS (transform_outcome <Policy, SubParser, Actor, Input> (
-            policy, parser.sub_parser, input, parser.actor))
+            policy, parser.sub_parser, input, parser.actor));
     };
 
     template <> struct describe <transform_parser_tag> {
@@ -98,7 +98,7 @@ namespace operation {
             Policy, SubParser, Actor, Input, SubOutput>> {
         auto operator() (transform_outcome <Policy, SubParser, Actor, Input>
             const & outcome) const
-        RETURNS ((*outcome.actor) (::parse_ll::output (outcome.sub_outcome)))
+        RETURNS ((*outcome.actor) (::parse_ll::output (outcome.sub_outcome)));
     };
     template <class Policy, class SubParser, class Actor, class Input>
         struct output <
@@ -106,14 +106,14 @@ namespace operation {
     {
         auto operator() (transform_outcome <Policy, SubParser, Actor, Input>
             const & outcome) const
-        RETURNS ((*outcome.actor)())
+        RETURNS ((*outcome.actor)());
     };
 
     template <class Policy, class SubParser, class Actor, class Input>
         struct rest <transform_outcome <Policy, SubParser, Actor, Input>> {
         auto operator() (transform_outcome <Policy, SubParser, Actor, Input>
             const & outcome) const
-        RETURNS (::parse_ll::rest (outcome.sub_outcome))
+        RETURNS (::parse_ll::rest (outcome.sub_outcome));
     };
 
 } // namespace operation

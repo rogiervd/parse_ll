@@ -46,7 +46,7 @@ namespace operation {
         template <class Parse, class Input> auto operator() (
             Parse const &, nothing_parser const &, Input && input) const
         RETURNS (successful <void, typename std::decay <Input>::type> (
-            std::forward <Input> (input)))
+            std::forward <Input> (input)));
     };
 
     template <> struct describe <nothing_parser_tag> {

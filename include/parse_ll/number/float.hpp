@@ -108,7 +108,7 @@ PARSE_LL_DEFINE_NAMED_PARSER_TEMPLATE ("float_exponent",
     no_skip [-(literal('e') >> int_as <Result>())] [extract_exponent()]);
 
 template <typename Result>
-    auto float_exponent_as() RETURNS (float_exponent_parser <Result>())
+    auto float_exponent_as() RETURNS (float_exponent_parser <Result>());
 
 static const auto float_exponent = float_exponent_as <int> ();
 
@@ -127,7 +127,7 @@ PARSE_LL_DEFINE_NAMED_PARSER_TEMPLATE ("float", float_parser, Result,
         [convert_float <Result>()]);
 
 template <class Result>
-    inline auto float_as() RETURNS (float_parser <Result> ())
+    inline auto float_as() RETURNS (float_parser <Result> ());
 
 static const auto float_ = float_as <double>();
 

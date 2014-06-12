@@ -152,7 +152,7 @@ namespace operation {
         RETURNS (parse_ll::parse (
             parse_policy::skip_policy <SkipParser, OriginalPolicy> (
                 parser.skip_parser, original_policy),
-            parser.sub_parser, input))
+            parser.sub_parser, input));
 
         // With padding: use skip_inside_pad_outcome.
         template <class OriginalPolicy,
@@ -165,7 +165,7 @@ namespace operation {
                 SubParser, Input> (
             parse_policy::skip_policy <SkipParser, OriginalPolicy> (
                 parser.skip_parser, original_policy),
-            parser.sub_parser, input))
+            parser.sub_parser, input));
     };
 
     template <> struct describe <skip_inside_tag> {
