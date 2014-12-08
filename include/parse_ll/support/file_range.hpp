@@ -36,7 +36,7 @@ namespace range {
 class file_range;
 struct file_range_tag;
 
-template <> struct tag_of_bare <file_range>
+template <> struct tag_of_qualified <file_range>
 { typedef file_range_tag type; };
 
 /**

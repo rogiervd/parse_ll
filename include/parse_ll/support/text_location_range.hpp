@@ -33,7 +33,7 @@ namespace range {
 template <class Range> class text_location_range;
 struct text_location_range_tag;
 
-template <class Range> struct tag_of_bare <text_location_range <Range>>
+template <class Range> struct tag_of_qualified <text_location_range <Range>>
 { typedef text_location_range_tag type; };
 
 template <class Range> class text_location_range {

@@ -289,7 +289,7 @@ namespace range {
 
 template <class Policy, class SubParser, class Input,
     parse_ll::repeat_type Implementation>
-struct tag_of_bare <parse_ll::repeat_output <
+struct tag_of_qualified <parse_ll::repeat_output <
     Policy, SubParser, Input, Implementation>>
 { typedef parse_ll::repeat_output_range_tag type; };
 
