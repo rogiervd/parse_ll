@@ -66,7 +66,9 @@ public:
 
 namespace operation {
 
-    template <> struct empty <text_location_range_tag, direction::front> {
+    template <class LocationRange>
+        struct empty <text_location_range_tag, direction::front, LocationRange>
+    {
         template <class Range> bool operator() (
             direction::front, text_location_range <Range> const & r) const
         {
@@ -74,13 +76,17 @@ namespace operation {
         }
     };
 
-    template <> struct first <text_location_range_tag, direction::front> {
+    template <class LocationRange>
+        struct first <text_location_range_tag, direction::front, LocationRange>
+    {
         template <class Range> auto operator() (
             direction::front, text_location_range <Range> const & r) const
         RETURNS (::range::first (r.underlying()));
     };
 
-    template <> struct drop_one <text_location_range_tag, direction::front> {
+    template <class LocationRange> struct drop_one <
+        text_location_range_tag, direction::front, LocationRange>
+    {
         template <class Range, class Increment> Range operator() (
             direction::front, Increment, Range const & r) const
         {

@@ -97,19 +97,24 @@ public:
 };
 
 namespace operation {
-    template<> struct empty <file_range_tag, direction::front> {
+    template <class Range>
+        struct empty <file_range_tag, direction::front, Range>
+    {
         bool operator() (direction::front, file_range const & r) const
         { return r.begin == r.end; }
     };
 
-    template<> struct first <file_range_tag, direction::front> {
+    template <class Range>
+        struct first <file_range_tag, direction::front, Range>
+    {
         char operator() (direction::front, file_range const & r) const
         { return *r.begin; }
     };
 
-    template<> struct drop_one <file_range_tag, direction::front> {
-        template <class Increment>
-        file_range operator() (
+    template <class Range>
+        struct drop_one <file_range_tag, direction::front, Range>
+    {
+        template <class Increment> file_range operator() (
             direction::front, Increment, file_range const & r) const
         {
             file_range::iterator next = r.begin;

@@ -295,8 +295,8 @@ struct tag_of_qualified <parse_ll::repeat_output <
 
 namespace operation {
 
-    template<>
-        struct empty <parse_ll::repeat_output_range_tag, direction::front>
+    template <class Range> struct empty <
+        parse_ll::repeat_output_range_tag, direction::front, Range>
     {
         template <class Policy, class SubParser, class Input>
             bool operator() (direction::front,
@@ -310,8 +310,8 @@ namespace operation {
         }
     };
 
-    template<>
-        struct first <parse_ll::repeat_output_range_tag, direction::front>
+    template <class Range> struct first <
+        parse_ll::repeat_output_range_tag, direction::front, Range>
     {
         template <class Policy, class SubParser, class Input>
             auto operator() (direction::front,
@@ -324,8 +324,8 @@ namespace operation {
         }
     };
 
-    template<>
-        struct drop_one <parse_ll::repeat_output_range_tag, direction::front>
+    template <class Range> struct drop_one <
+        parse_ll::repeat_output_range_tag, direction::front, Range>
     {
         template <class Increment, class Output>
             Output operator() (direction::front, Increment, Output const & o)
