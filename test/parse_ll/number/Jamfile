@@ -1,5 +1,1 @@
-alias "number" :
-    # Run all .cpp files in this directory as tests.
-    [ run_glob *.cpp ]
-    ;
-
+run_glob *.cpp ;

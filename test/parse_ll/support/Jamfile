@@ -1,5 +1,2 @@
-alias "support" :
-    [ run file_range.cpp : : ../example/example_file.txt ]
-    [ run text_location_range.cpp : : ../example/location_example.txt ]
-    ;
-
+run file_range.cpp : : ../example/example_file.txt ;
+run text_location_range.cpp : : ../example/location_example.txt ;

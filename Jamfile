@@ -1,9 +1,10 @@
-project /parse_ll :
-    requirements
-    <library>/range//range
-    <library>/rime//rime
-    <library>/utility//utility
-    <library>/meta//meta
+project /parse_ll
+    : requirements
+      <use>/boost//headers
+      <library>/range//range
+      <library>/rime//rime
+      <library>/utility//utility
+      <library>/meta//meta
     ;
 
 # Declare target /parse_ll//parse_ll as a header-only library.
@@ -12,4 +13,3 @@ alias parse_ll : : : :
     # Require C++11.
     <toolset>gcc:<cxxflags>-std=gnu++0x <toolset>clang:<cxxflags>-std=c++11
     ;
-
