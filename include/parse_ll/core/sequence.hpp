@@ -136,7 +136,7 @@ public:
             // For an expect parser, outcome_2 must succeed if outcome_1 does.
             if (expect && !success (*outcome_2))
                 // Otherwise, construction fails.
-                throw error_at <Input> (rest (outcome_1));
+                throw error() << error_at <Input> (rest (outcome_1));
         } else
             this->input = input;
     }

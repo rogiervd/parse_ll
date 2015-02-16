@@ -281,8 +281,13 @@ BOOST_AUTO_TEST_CASE (test_expect_sequence) {
                 std::get <2> (output (result));
                 // Should have thrown!
                 BOOST_CHECK (false);
-            } catch (parse_ll::error_at <decltype (range::view (r))> & e) {
-                BOOST_CHECK (empty (e.position()));
+            } catch (parse_ll::error & e) {
+                typedef decltype (range::view (r)) input_type;
+                input_type * position = boost::get_error_info <
+                    parse_ll::error_position <input_type>::type> (e);
+                BOOST_CHECK (position);
+                if (position)
+                    BOOST_CHECK (empty (*position));
             }
         }
         {   // Check that the error points to the last ">".
@@ -317,8 +322,13 @@ BOOST_AUTO_TEST_CASE (test_expect_sequence) {
                 std::get <2> (output (result));
                 // Should have thrown!
                 BOOST_CHECK (false);
-            } catch (parse_ll::error_at <decltype (range::view (r))> & e) {
-                BOOST_CHECK_EQUAL (first (e.position()), 'b');
+            } catch (parse_ll::error & e) {
+                typedef decltype (range::view (r)) input_type;
+                input_type * position = boost::get_error_info <
+                    parse_ll::error_position <input_type>::type> (e);
+                BOOST_CHECK (position);
+                if (position)
+                    BOOST_CHECK_EQUAL (first (*position), 'b');
             }
         }
     }
