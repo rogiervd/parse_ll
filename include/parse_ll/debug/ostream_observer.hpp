@@ -53,11 +53,12 @@ class ostream_observer {
             ++ i, start = range::drop (start))
         {
             char c = range::first (start);
-            if (c >= 0x20 && c < 0x80)
+            if (c >= 0x20 && int (c) < 0x80)
                 *stream << c;
             else {
                 auto save_flags = stream->flags();
-                *stream << '\\' << std::hex << std::showbase << unsigned (c);
+                *stream << '\\' << std::hex << std::showbase
+                    << unsigned ((unsigned char) c);
                 stream->flags (save_flags);
             }
         }
