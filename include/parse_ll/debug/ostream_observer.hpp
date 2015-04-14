@@ -52,7 +52,7 @@ class ostream_observer {
         for (int i = 0; start != finish && i != 60;
             ++ i, start = range::drop (start))
         {
-            char c = range::first (start);
+            auto c = range::first (start);
             if (c >= 0x20 && int (c) < 0x80)
                 *stream << c;
             else {
