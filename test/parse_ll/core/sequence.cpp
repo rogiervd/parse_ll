@@ -62,8 +62,8 @@ BOOST_AUTO_TEST_CASE (test_sequence) {
             BOOST_CHECK (!success (result));
         }
         {
-            auto parser = parse_ll::nothing [boost::phoenix::val ('c')]
-                >> parse_ll::char_ ('a') >> parse_ll::char_ ('b');
+            auto parser = (parse_ll::nothing [boost::phoenix::val ('c')]
+                >> parse_ll::char_ ('a')) >> parse_ll::char_ ('b');
             auto result = parse (parser, r);
             BOOST_CHECK (!success (result));
         }
