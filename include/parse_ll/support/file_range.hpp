@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Rogier van Dalen.
+Copyright 2012, 2015 Rogier van Dalen.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ Wrap Boost.Spirit's istream_iterator in a range.
 namespace range {
 
 class file_range;
-struct file_range_tag;
+struct file_range_tag {};
 
 template <> struct tag_of_qualified <file_range>
 { typedef file_range_tag type; };
@@ -91,35 +91,20 @@ public:
     { return begin == other.begin; }
     bool operator != (file_range const & other) const
     { return !(this->begin == other.begin); }
+
+private:
+    friend class range::helper::member_access;
+
+    bool empty (direction::front) const { return begin == end; }
+
+    char first (direction::front) const { return *begin; }
+
+    file_range drop_one (direction::front) const {
+        iterator next = begin;
+        ++ next;
+        return file_range (file, next);
+    }
 };
-
-namespace operation {
-    template <class Range>
-        struct empty <file_range_tag, direction::front, Range>
-    {
-        bool operator() (direction::front, file_range const & r) const
-        { return r.begin == r.end; }
-    };
-
-    template <class Range>
-        struct first <file_range_tag, direction::front, Range>
-    {
-        char operator() (direction::front, file_range const & r) const
-        { return *r.begin; }
-    };
-
-    template <class Range>
-        struct drop_one <file_range_tag, direction::front, Range>
-    {
-        template <class Increment> file_range operator() (
-            direction::front, Increment, file_range const & r) const
-        {
-            file_range::iterator next = r.begin;
-            ++ next;
-            return file_range (r.file, next);
-        }
-    };
-} // namespace operation
 
 } // namespace range
 

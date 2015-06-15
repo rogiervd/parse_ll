@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Rogier van Dalen.
+Copyright 2012, 2015 Rogier van Dalen.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@ Define a range that remembers its position in a text file.
 namespace range {
 
 template <class Range> class text_location_range;
-struct text_location_range_tag;
+
+struct text_location_range_tag {};
 
 template <class Range> struct tag_of_qualified <text_location_range <Range>>
 { typedef text_location_range_tag type; };
@@ -57,63 +58,43 @@ public:
     { return underlying_ != other.underlying_; }
 
     Range const & underlying() const { return underlying_; }
+
     std::size_t line() const { return line_; }
     std::size_t column() const { return column_; }
+
+private:
+    friend class range::helper::member_access;
+
+    bool empty (direction::front) const
+    { return ::range::empty (underlying()); }
+
+    auto first (direction::front) const
+    RETURNS (::range::first (underlying_));
+
+    text_location_range drop_one (direction::front) const {
+        auto current_character = ::range::first (underlying_);
+        switch (current_character) {
+        case '\t':
+            return text_location_range (::range::drop (underlying_),
+                line_, (column_ / tab_size + 1) * tab_size, false);
+        case '\n':
+            if (last_carriage_return)
+                // Second character of a CRLF-type newline.
+                return text_location_range (::range::drop (underlying_),
+                    line_, column_, false);
+            else
+                return text_location_range (::range::drop (underlying_),
+                    line_ + 1, std::size_t(), false);
+        case '\r':
+            return text_location_range (::range::drop (underlying_),
+                line_ + 1, std::size_t(), true);
+        default:
+            return text_location_range (::range::drop (underlying_),
+                line_, column_ + 1, false);
+        }
+    }
 };
-
-namespace operation {
-
-    template <class LocationRange>
-        struct empty <text_location_range_tag, direction::front, LocationRange>
-    {
-        template <class Range> bool operator() (
-            direction::front, text_location_range <Range> const & r) const
-        {
-            return ::range::empty (r.underlying());
-        }
-    };
-
-    template <class LocationRange>
-        struct first <text_location_range_tag, direction::front, LocationRange>
-    {
-        template <class Range> auto operator() (
-            direction::front, text_location_range <Range> const & r) const
-        RETURNS (::range::first (r.underlying()));
-    };
-
-    template <class LocationRange> struct drop_one <
-        text_location_range_tag, direction::front, LocationRange>
-    {
-        template <class Range, class Increment> Range operator() (
-            direction::front, Increment, Range const & r) const
-        {
-            auto current_character = ::range::first (r.underlying());
-            switch (current_character) {
-            case '\t':
-                return Range (::range::drop (r.underlying()),
-                    r.line_, (r.column_ / Range::tab_size + 1)
-                        * Range::tab_size, false);
-            case '\n':
-                if (r.last_carriage_return)
-                    // Second character of a CRLF-type newline.
-                    return Range (::range::drop (r.underlying()),
-                        r.line_, r.column_, false);
-                else
-                    return Range (::range::drop (r.underlying()),
-                        r.line_ + 1, std::size_t(), false);
-            case '\r':
-                return Range (::range::drop (r.underlying()),
-                    r.line_ + 1, std::size_t(), true);
-            default:
-                return Range (::range::drop (r.underlying()),
-                    r.line_, r.column_ + 1, false);
-            }
-        }
-    };
-
-} // namespace operation
 
 } // namespace range
 
 #endif  // PARSE_LL_TEXT_LOCATION_RANGE_HPP_INCLUDED
-

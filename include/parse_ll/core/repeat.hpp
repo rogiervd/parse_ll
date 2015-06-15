@@ -1,5 +1,5 @@
 /*
-Copyright 2012 Rogier van Dalen.
+Copyright 2012, 2015 Rogier van Dalen.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ template <class Policy, class SubParser, class Input,
     repeat_type Implementation> struct repeat_outcome;
 template <class Policy, class SubParser, class Input,
     repeat_type Implementation> struct repeat_output;
-struct repeat_output_range_tag;
+struct repeat_output_range_tag {};
 
 namespace operation {
 
@@ -278,6 +278,30 @@ public:
         int maximum, Input const & input)
     : policy (policy), parser (&parser), maximum (maximum),
         sub_outcome (parse_ll::parse (policy, parser.sub_parser, input)) {}
+
+private:
+    friend class range::helper::member_access;
+
+    bool empty (direction::front) const {
+        if (maximum != 0 && ::parse_ll::success (sub_outcome))
+            return false;
+        else
+            return true;
+    }
+
+    auto first (direction::front) const
+    -> decltype (::parse_ll::output (sub_outcome))
+    {
+        assert (!empty (range::front));
+        return ::parse_ll::output (sub_outcome);
+    }
+
+    repeat_output drop_one (direction::front) const {
+        assert (!empty (range::front));
+        auto next_range = parse_ll::skip_over (
+            policy.skip_parser(), ::parse_ll::rest (sub_outcome));
+        return repeat_output (policy, *parser, maximum - 1, next_range);
+    }
 };
 
 } // namespace parse_ll
@@ -290,52 +314,7 @@ struct tag_of_qualified <parse_ll::repeat_output <
     Policy, SubParser, Input, Implementation>>
 { typedef parse_ll::repeat_output_range_tag type; };
 
-namespace operation {
-
-    template <class Range> struct empty <
-        parse_ll::repeat_output_range_tag, direction::front, Range>
-    {
-        template <class Policy, class SubParser, class Input>
-            bool operator() (direction::front,
-                parse_ll::repeat_output <Policy, SubParser, Input,
-                    parse_ll::repeat_type::lazy> const & o) const
-        {
-            if (o.maximum != 0 && ::parse_ll::success (o.sub_outcome))
-                return false;
-            else
-                return true;
-        }
-    };
-
-    template <class Range> struct first <
-        parse_ll::repeat_output_range_tag, direction::front, Range>
-    {
-        template <class Policy, class SubParser, class Input>
-            auto operator() (direction::front,
-                parse_ll::repeat_output <Policy, SubParser, Input,
-                    ::parse_ll::repeat_type::lazy> const & o) const
-        -> decltype (::parse_ll::output (o.sub_outcome))
-        {
-            assert (!::range::empty (o));
-            return ::parse_ll::output (o.sub_outcome);
-        }
-    };
-
-    template <class Range> struct drop_one <
-        parse_ll::repeat_output_range_tag, direction::front, Range>
-    {
-        template <class Increment, class Output>
-            Output operator() (direction::front, Increment, Output const & o)
-            const
-        {
-            assert (!::range::empty (o));
-            auto next_range = parse_ll::skip_over (
-                o.policy.skip_parser(), ::parse_ll::rest (o.sub_outcome));
-            return Output (o.policy, *o.parser, o.maximum - 1, next_range);
-        }
-    };
-
-}} // namespace range::operation
+} // namespace range
 
 #endif // PARSE_LL_BASE_REPEAT_HPP_INCLUDED
 
