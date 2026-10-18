@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
             auto parser = fuzz (parse_ll::unsigned_as <int>());
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 63710u);
+            BOOST_CHECK_EQUAL (output (result), 63710);
             BOOST_CHECK_EQUAL (first (rest (result)), '.');
             BOOST_CHECK (empty (drop (rest (result))));
         }
