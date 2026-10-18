@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
             auto parser = parse_ll::unsigned_;
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 0);
+            BOOST_CHECK_EQUAL (output (result), 0u);
             BOOST_CHECK (empty (rest (result)));
         }
     }
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
             auto parser = fuzz (parse_ll::unsigned_);
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 6);
+            BOOST_CHECK_EQUAL (output (result), 6u);
             BOOST_CHECK (empty (rest (result)));
         }
     }
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
                 parse_ll::unsigned_];
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 6371);
+            BOOST_CHECK_EQUAL (output (result), 6371u);
             BOOST_CHECK_EQUAL (first (rest (result)), ' ');
         }
         {
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
                 parse_ll::unsigned_ >> parse_ll::unsigned_];
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (std::get <0> (output (result)), 6371);
-            BOOST_CHECK_EQUAL (std::get <1> (output (result)), 45);
+            BOOST_CHECK_EQUAL (std::get <0> (output (result)), 6371u);
+            BOOST_CHECK_EQUAL (std::get <1> (output (result)), 45u);
             BOOST_CHECK_EQUAL (first (rest (result)), ' ');
         }
     }
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE (test_unsigned) {
             auto parser = fuzz (parse_ll::unsigned_as <int>());
             auto result = parse (parser, r);
             BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 63710);
+            BOOST_CHECK_EQUAL (output (result), 63710u);
             BOOST_CHECK_EQUAL (first (rest (result)), '.');
             BOOST_CHECK (empty (drop (rest (result))));
         }
