@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE (test_text_location_range) {
         range::text_location_range <range::file_range> r (
             example_file_name);
 
-        BOOST_CHECK_EQUAL (r.line(),  0);
-        BOOST_CHECK_EQUAL (r.column(),  0);
+        BOOST_CHECK_EQUAL (r.line(),  0u);
+        BOOST_CHECK_EQUAL (r.column(),  0u);
         BOOST_CHECK_EQUAL (first (r), '0');
         r = drop (r);
         BOOST_CHECK_EQUAL (first (r), '0');
@@ -59,8 +59,8 @@ BOOST_AUTO_TEST_CASE (test_text_location_range) {
         r = drop (r);
         r = drop (r);
 
-        BOOST_CHECK_EQUAL (r.line(),  1);
-        BOOST_CHECK_EQUAL (r.column(),  2);
+        BOOST_CHECK_EQUAL (r.line(),  1u);
+        BOOST_CHECK_EQUAL (r.column(),  2u);
         BOOST_CHECK_EQUAL (first (r), '1');
         r = drop (r);
         BOOST_CHECK_EQUAL (first (r), '2');
@@ -72,16 +72,16 @@ BOOST_AUTO_TEST_CASE (test_text_location_range) {
         r = drop (r);
         r = drop (r);
 
-        BOOST_CHECK_EQUAL (r.line(),  4);
-        BOOST_CHECK_EQUAL (r.column(),  0);
+        BOOST_CHECK_EQUAL (r.line(),  4u);
+        BOOST_CHECK_EQUAL (r.column(),  0u);
         BOOST_CHECK_EQUAL (first (r), '4');
         r = drop (r);
         BOOST_CHECK_EQUAL (first (r), '0');
 
         r = drop (r);
         r = drop (r);
-        BOOST_CHECK_EQUAL (r.line(),  5);
-        BOOST_CHECK_EQUAL (r.column(),  0);
+        BOOST_CHECK_EQUAL (r.line(),  5u);
+        BOOST_CHECK_EQUAL (r.column(),  0u);
         BOOST_CHECK_EQUAL (first (r), '5');
         r = drop (r);
         BOOST_CHECK_EQUAL (first (r), '0');
@@ -89,8 +89,8 @@ BOOST_AUTO_TEST_CASE (test_text_location_range) {
         // Tab!
         r = drop (r);
 
-        BOOST_CHECK_EQUAL (r.line(),  5);
-        BOOST_CHECK_EQUAL (r.column(),  4);
+        BOOST_CHECK_EQUAL (r.line(),  5u);
+        BOOST_CHECK_EQUAL (r.column(),  4u);
         BOOST_CHECK_EQUAL (first (r), '5');
         r = drop (r);
         BOOST_CHECK_EQUAL (first (r), '4');
@@ -103,18 +103,18 @@ BOOST_AUTO_TEST_CASE (test_text_location_range) {
         r = drop (r);
         // CR
         r = drop (r);
-        BOOST_CHECK_EQUAL (r.line(),  1);
-        BOOST_CHECK_EQUAL (r.column(),  0);
+        BOOST_CHECK_EQUAL (r.line(),  1u);
+        BOOST_CHECK_EQUAL (r.column(),  0u);
         // LF
         r = drop (r);
-        BOOST_CHECK_EQUAL (r.line(),  1);
-        BOOST_CHECK_EQUAL (r.column(),  0);
+        BOOST_CHECK_EQUAL (r.line(),  1u);
+        BOOST_CHECK_EQUAL (r.column(),  0u);
         r = drop (r);
-        BOOST_CHECK_EQUAL (r.line(),  1);
-        BOOST_CHECK_EQUAL (r.column(),  1);
+        BOOST_CHECK_EQUAL (r.line(),  1u);
+        BOOST_CHECK_EQUAL (r.column(),  1u);
         r = drop (r);
-        BOOST_CHECK_EQUAL (r.line(),  1);
-        BOOST_CHECK_EQUAL (r.column(),  2);
+        BOOST_CHECK_EQUAL (r.line(),  1u);
+        BOOST_CHECK_EQUAL (r.column(),  2u);
         BOOST_CHECK (empty (r));
     }
 }
