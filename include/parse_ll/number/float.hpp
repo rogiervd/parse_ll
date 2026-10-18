@@ -21,6 +21,8 @@ Define a floating-point parser.
 #ifndef PARSE_LL_NUMBER_FLOAT_HPP_INCLUDED
 #define PARSE_LL_NUMBER_FLOAT_HPP_INCLUDED
 
+#include <cmath>
+
 #include "utility/returns.hpp"
 
 #include "range/walk_size.hpp"
