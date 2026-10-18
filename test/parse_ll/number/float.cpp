@@ -19,14 +19,14 @@ Test floating-point parser.
 */
 
 #define BOOST_TEST_MODULE float_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/number/float.hpp"
 
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 #include <boost/math/special_functions/sign.hpp>
 

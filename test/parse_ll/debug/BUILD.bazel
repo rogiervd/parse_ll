@@ -1,0 +1,12 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "trace",
+    size = "small",
+    srcs = ["trace.cpp"],
+    deps = [
+        "//:parse_ll",
+        "@boost.any",
+        "@boost.test//:unit_test_main",
+    ],
+)

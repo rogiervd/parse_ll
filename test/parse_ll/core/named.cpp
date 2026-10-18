@@ -19,14 +19,14 @@ Test named parsers.
 */
 
 #define BOOST_TEST_MODULE named_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/named.hpp"
 
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 #include "parse_ll/core/char.hpp"
 #include "parse_ll/core/repeat.hpp"

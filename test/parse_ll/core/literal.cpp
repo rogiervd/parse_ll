@@ -19,7 +19,7 @@ Test literal_parser.
 */
 
 #define BOOST_TEST_MODULE literal_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/literal.hpp"
 
@@ -27,7 +27,7 @@ Test literal_parser.
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 #include "../helper/fuzz_parser.hpp"
 

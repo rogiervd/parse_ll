@@ -19,14 +19,14 @@ Test difference parser.
 */
 
 #define BOOST_TEST_MODULE difference_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/difference.hpp"
 
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 #include "parse_ll/core/char.hpp"
 #include "parse_ll/core/literal.hpp"

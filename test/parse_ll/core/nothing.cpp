@@ -19,7 +19,7 @@ Test nothing_parser.
 */
 
 #define BOOST_TEST_MODULE nothing_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/nothing.hpp"
 
@@ -28,7 +28,7 @@ Test nothing_parser.
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 #include "../helper/fuzz_parser.hpp"
 

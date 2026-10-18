@@ -26,7 +26,7 @@ Wrap Boost.Spirit's istream_iterator in a range.
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std.hpp"
 
 namespace range {
 
