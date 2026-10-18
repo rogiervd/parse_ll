@@ -32,11 +32,14 @@ build:windows --cxxopt=/std:c++17
 # Pass include paths of dependencies with /external:I, and do not report
 # warnings in those headers.
 build:windows --features=external_include_paths
+
 # Switch on warnings and make them errors, for this project's own source files
 # only, not for dependencies.
 # Bazel applies these options if either the source file's path or its label
 # matches, so exclude both the path (external/...) and the label
 # (@@<repository>+//...) of files in dependencies.
+build:linux --per_file_copt=external/.*@-Wno-error
+build:macos --per_file_copt=external/.*@-Wno-error
 build:windows --per_file_copt=.*,-^external/,-[+]//@/W4,/WX
 
 # Compiler selection.
