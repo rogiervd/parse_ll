@@ -1,0 +1,25 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "file_range",
+    size = "small",
+    srcs = ["file_range.cpp"],
+    args = ["--", "$(location //test/parse_ll/example:example_file.txt)"],
+    data = ["//test/parse_ll/example:example_file.txt"],
+    deps = [
+        "//:parse_ll",
+        "@boost.test//:unit_test_main",
+    ],
+)
+
+cc_test(
+    name = "text_location_range",
+    size = "small",
+    srcs = ["text_location_range.cpp"],
+    args = ["--", "$(location //test/parse_ll/example:location_example.txt)"],
+    data = ["//test/parse_ll/example:location_example.txt"],
+    deps = [
+        "//:parse_ll",
+        "@boost.test//:unit_test_main",
+    ],
+)
