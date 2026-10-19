@@ -1,0 +1,1 @@
+exports_files(["example_file.txt", "location_example.txt"])

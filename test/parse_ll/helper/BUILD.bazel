@@ -1,0 +1,17 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+# Helper headers for the unit tests.
+# Tests include these with relative paths, e.g. "../helper/fuzz_parser.hpp".
+cc_library(
+    name = "helper",
+    testonly = True,
+    hdrs = [
+        "fuzz_parser.hpp",
+        "object.hpp",
+    ],
+    visibility = ["//test/parse_ll:__subpackages__"],
+    deps = [
+        "//:parse_ll",
+        "@utility",
+    ],
+)

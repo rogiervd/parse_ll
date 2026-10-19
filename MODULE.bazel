@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: Copyright 2024 Rogier van Dalen
+#
+# SPDX-License-Identifier: Apache-2.0
+
+module(
+    name = "parse_ll",
+    version = "1.0.0",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.26")
+
+# The auto-configured C++ toolchains, so that .bazelrc can select one of them
+# explicitly (for --config=msvc and --config=clang-cl on Windows).
+cc_configure = use_extension(
+    "@rules_cc//cc:extensions.bzl",
+    "cc_configure_extension",
+    dev_dependency = True,
+)
+use_repo(cc_configure, "local_config_cc")
+
+bazel_dep(name = "meta", version = "1.1.2")
+bazel_dep(name = "utility", version = "2.0.0")
+bazel_dep(name = "rime", version = "1.1.2")
+bazel_dep(name = "range", version = "1.1.0")
+bazel_dep(name = "boost.exception", version = "1.90.0.bcr.1")
+bazel_dep(name = "boost.mpl", version = "1.90.0.bcr.1")
+bazel_dep(name = "boost.optional", version = "1.90.0.bcr.1")
+bazel_dep(name = "boost.spirit", version = "1.90.0.bcr.1")
+bazel_dep(name = "boost.utility", version = "1.90.0.bcr.1")
+bazel_dep(name = "boost.variant", version = "1.90.0.bcr.1")
+
+# Only used by the tests.
+bazel_dep(name = "boost.test", version = "1.90.0.bcr.1", dev_dependency = True)
+bazel_dep(name = "boost.any", version = "1.90.0.bcr.1", dev_dependency = True)
+bazel_dep(name = "boost.math", version = "1.90.0.bcr.1", dev_dependency = True)
+bazel_dep(name = "nanobind_bazel", version = "2.12.0")
+
+# IDEs as well as other tools can use a compile_commands.json databse to know
+# how files are compiled.
+# This is used, for example, for clang-tidy.
+# To generate the compile_commands.json file, run
+#   bazel run --config=clang @hedron_compile_commands//:refresh_all
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "6eb3ff1de6445355552ef4230be0caf3e1dd27e5",
+    remote = "https://github.com/helly25/bazel-compile-commands-extractor.git",
+)
