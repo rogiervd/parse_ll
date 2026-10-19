@@ -19,7 +19,7 @@ Test literal_parser.
 */
 
 #define BOOST_TEST_MODULE literal_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/literal.hpp"
 

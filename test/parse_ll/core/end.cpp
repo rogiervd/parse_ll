@@ -19,7 +19,7 @@ Test end_parser.
 */
 
 #define BOOST_TEST_MODULE end_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/end.hpp"
 

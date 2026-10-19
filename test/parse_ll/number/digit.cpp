@@ -19,7 +19,7 @@ Test digit parser.
 */
 
 #define BOOST_TEST_MODULE digit_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/number/digit.hpp"
 

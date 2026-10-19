@@ -19,7 +19,7 @@ Test rule.
 */
 
 #define BOOST_TEST_MODULE rule_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/rule.hpp"
 
