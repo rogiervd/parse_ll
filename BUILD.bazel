@@ -7,8 +7,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "parse_ll",
     # Headers that a user of this library can include.
-    hdrs = glob([
-        "include/parse_ll/core.hpp",
+    hdrs = ["include/parse_ll/core.hpp"] + glob([
         "include/parse_ll/core/*.hpp",
         "include/parse_ll/core/outcome/*.hpp",
         "include/parse_ll/core/detail/*.hpp",
