@@ -308,8 +308,8 @@ namespace detail {
     Find the unqualified type of the outcome.
     */
     template <class Policy, class Parser, class Input> struct parser_outcome
-    : std::decay <typename std::result_of <callable::parse (
-        Policy, Parser, Input)>::type> {};
+    : std::decay <typename std::invoke_result <callable::parse,
+        Policy, Parser, Input>::type> {};
 
     template <class Outcome> struct outcome_output {
         typedef decltype (::parse_ll::output (std::declval <Outcome>())) type;
