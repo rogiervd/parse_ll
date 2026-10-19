@@ -19,7 +19,7 @@ Test core/outcome.hpp.
 */
 
 #define BOOST_TEST_MODULE outcome
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/outcome.hpp"
 

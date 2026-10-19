@@ -19,7 +19,7 @@ Test sign parser.
 */
 
 #define BOOST_TEST_MODULE sign_parser
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/number/sign.hpp"
 

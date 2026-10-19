@@ -19,7 +19,7 @@ Test describe.
 */
 
 #define BOOST_TEST_MODULE describer
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/core/describe.hpp"
 

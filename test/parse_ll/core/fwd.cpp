@@ -22,7 +22,7 @@ Test the file fwd.hpp.
 #include "parse_ll/core/fwd.hpp"
 
 #define BOOST_TEST_MODULE fwd_hpp
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 struct invalid : parse_ll::operation::unimplemented {};
 struct valid {};

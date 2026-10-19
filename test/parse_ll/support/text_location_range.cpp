@@ -19,7 +19,7 @@ Test text_location_range.
 */
 
 #define BOOST_TEST_MODULE text_location_range
-#include "utility/test/boost_unit_test.hpp"
+#include <boost/test/unit_test.hpp>
 
 #include "parse_ll/support/text_location_range.hpp"
 
