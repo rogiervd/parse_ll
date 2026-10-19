@@ -35,46 +35,49 @@ Test char_parser.
 BOOST_AUTO_TEST_SUITE(test_parse_char_parser)
 
 
-BOOST_AUTO_TEST_CASE (test_char) {
-    using range::empty; using range::first; using range::drop;
+BOOST_AUTO_TEST_CASE(test_char)
+{
+    using range::drop;
+    using range::empty;
+    using range::first;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
     {
-        std::string r ("");
+        std::string r("");
         {
             auto parser = parse_ll::char_;
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = parse_ll::char_ ('1');
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = parse_ll::char_('1');
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
     }
     {
-        std::string r ("ab");
+        std::string r("ab");
         {
-            auto parser = fuzz (parse_ll::char_);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 'a');
-            BOOST_CHECK_EQUAL (first (rest (result)), 'b');
+            auto parser = fuzz(parse_ll::char_);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 'a');
+            BOOST_CHECK_EQUAL(first(rest(result)), 'b');
         }
         {
             auto parser = parse_ll::char_('b');
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = fuzz (parse_ll::char_('a'));
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 'a');
-            BOOST_CHECK_EQUAL (first (rest (result)), 'b');
+            auto parser = fuzz(parse_ll::char_('a'));
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 'a');
+            BOOST_CHECK_EQUAL(first(rest(result)), 'b');
         }
     }
 }

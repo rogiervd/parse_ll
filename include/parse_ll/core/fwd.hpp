@@ -38,7 +38,7 @@ template <class Parser1, class Parser2> struct difference_parser;
 
 // These are useful for other programs.
 template <class Input, class Output = void, class SkipParser = void>
-    struct rule;
+struct rule;
 struct named_parser;
 
 namespace parse_policy {
@@ -47,7 +47,7 @@ namespace parse_policy {
     template <class OriginalParse> struct no_skip_policy;
     template <class SkipParser, class OriginalParse> struct skip_policy;
 
-} // namespace parse_policy
+}  // namespace parse_policy
 
 namespace operation {
 
@@ -60,11 +60,10 @@ namespace operation {
 
     struct unimplemented {};
     template <class Operation> struct is_implemented
-    : boost::mpl::not_ <std::is_base_of <unimplemented, Operation> > {};
+    : boost::mpl::not_<std::is_base_of<unimplemented, Operation>> {};
 
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_BASE_FWD_HPP
-

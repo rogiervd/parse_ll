@@ -34,37 +34,39 @@ Test end_parser.
 
 BOOST_AUTO_TEST_SUITE(test_parse_end)
 
-BOOST_AUTO_TEST_CASE (test_end) {
+BOOST_AUTO_TEST_CASE(test_end)
+{
     using range::empty;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
 
     {
-        std::string r ("");
+        std::string r("");
         {
             auto parser = parse_ll::end;
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            static_assert (std::is_same <decltype (output (result)), void
-                >::value, "Output should be void");
-            BOOST_CHECK (empty (rest (result)));
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            static_assert(
+                std::is_same<decltype(output(result)), void>::value,
+                "Output should be void");
+            BOOST_CHECK(empty(rest(result)));
         }
         {
-            auto parser = fuzz (parse_ll::end);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(parse_ll::end);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
     }
     {
-        std::string r ("a");
+        std::string r("a");
         {
-            auto parser = fuzz (parse_ll::end);
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = fuzz(parse_ll::end);
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         // This test should not require sequence.
         /*{
@@ -77,4 +79,3 @@ BOOST_AUTO_TEST_CASE (test_end) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

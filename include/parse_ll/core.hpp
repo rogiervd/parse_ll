@@ -21,15 +21,15 @@ Include everything from "core".
 #ifndef PARSE_LL_BASE_HPP_INCLUDED
 #define PARSE_LL_BASE_HPP_INCLUDED
 
+#include "core/core.hpp"
 #include "core/fwd.hpp"
 #include "core/outcome.hpp"
-#include "core/core.hpp"
 
 // Terminal parsers
-#include "core/literal.hpp"
 #include "core/char.hpp"
-#include "core/nothing.hpp"
 #include "core/end.hpp"
+#include "core/literal.hpp"
+#include "core/nothing.hpp"
 
 // Skip
 #include "core/no_skip.hpp"
@@ -44,10 +44,9 @@ Include everything from "core".
 #include "core/transform.hpp"
 
 // Miscellaneous
-#include "core/named.hpp"
 #include "core/error.hpp"
+#include "core/named.hpp"
 #include "core/rule.hpp"
 #include "core/whitespace.hpp"
 
 #endif  // PARSE_LL_BASE_HPP_INCLUDED
-

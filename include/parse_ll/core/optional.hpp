@@ -26,8 +26,8 @@ Define an optional parser, which parses something zero or one time.
 #include <boost/mpl/if.hpp>
 #include <boost/optional.hpp>
 
-#include "fwd.hpp"
 #include "core.hpp"
+#include "fwd.hpp"
 
 namespace parse_ll {
 
@@ -56,58 +56,65 @@ is explicit_outcome and the new implementation otherwise?
 Or outcomes could be asserted successful and shed some of their weight...?
 */
 template <class SubParser> struct optional_parser
-    : public parser_base <optional_parser <SubParser> >
+: public parser_base<optional_parser<SubParser>>
 {
     SubParser sub_parser;
+
 public:
-    optional_parser (SubParser const & sub_parser) : sub_parser (sub_parser) {}
+    optional_parser(SubParser const & sub_parser) : sub_parser(sub_parser) {}
 };
 
 struct optional_parser_tag;
 
-template <class SubParser>
-    struct decayed_parser_tag <optional_parser <SubParser>>
-{ typedef optional_parser_tag type; };
+template <class SubParser> struct decayed_parser_tag<optional_parser<SubParser>>
+{
+    typedef optional_parser_tag type;
+};
 
 namespace operation {
 
-    template <> struct parse <optional_parser_tag> {
-        template <class Policy, class SubParser, class Input> struct result {
-            typedef typename std::decay <Input>::type bare_input_type;
-            typedef typename detail::parser_outcome <Policy, SubParser,
-                bare_input_type>::type sub_outcome_type;
-            typedef typename detail::outcome_output <sub_outcome_type>::type
+    template <> struct parse<optional_parser_tag>
+    {
+        template <class Policy, class SubParser, class Input> struct result
+        {
+            typedef typename std::decay<Input>::type bare_input_type;
+            typedef typename detail::parser_outcome<
+                Policy, SubParser, bare_input_type>::type sub_outcome_type;
+            typedef typename detail::outcome_output<sub_outcome_type>::type
                 sub_output_type;
-            typedef typename boost::mpl::if_ <
-                std::is_same <sub_output_type, void>,
-                void, boost::optional <sub_output_type>>::type output_type;
+            typedef typename boost::mpl::if_<
+                std::is_same<sub_output_type, void>, void,
+                boost::optional<sub_output_type>>::type output_type;
 
-            typedef successful <output_type, bare_input_type> type;
+            typedef successful<output_type, bare_input_type> type;
         };
 
         template <class Policy, class SubParser, class Input>
-            typename result <Policy, SubParser, Input>::type
-        operator() (Policy const & policy,
-            optional_parser <SubParser> const & parser, Input && input) const
+        typename result<Policy, SubParser, Input>::type operator()(
+            Policy const & policy, optional_parser<SubParser> const & parser,
+            Input && input) const
         {
-            auto sub_outcome = parse_ll::parse (policy,
-                parser.sub_parser, std::forward <Input> (input));
-            if (::parse_ll::success (sub_outcome))
+            auto sub_outcome = parse_ll::parse(
+                policy, parser.sub_parser, std::forward<Input>(input));
+            if (::parse_ll::success(sub_outcome)) {
                 return sub_outcome;
-            else
+            } else {
                 // Default-construct the output type, i.e. an empty
                 // boost::optional <...>, or a void.
-                return typename result <Policy, SubParser, Input>::type (input);
+                return typename result<Policy, SubParser, Input>::type(input);
+            }
         }
     };
 
-    template <> struct describe <optional_parser_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "optional"; }
+    template <> struct describe<optional_parser_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "optional";
+        }
     };
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
-#endif // PARSE_LL_BASE_REPEAT_HPP_INCLUDED
-
+#endif  // PARSE_LL_BASE_REPEAT_HPP_INCLUDED

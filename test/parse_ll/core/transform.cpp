@@ -28,56 +28,60 @@ Test transform_parser.
 #include "range/core.hpp"
 #include "range/std/string.hpp"
 
-#include "parse_ll/core/nothing.hpp"
-#include "parse_ll/core/char.hpp"
 #include "../helper/fuzz_parser.hpp"
+#include "parse_ll/core/char.hpp"
+#include "parse_ll/core/nothing.hpp"
 
 BOOST_AUTO_TEST_SUITE(test_parse_transform_parser)
 
-struct add {
+struct add
+{
     int value;
 
-    add (int value) : value (value) {}
+    add(int value) : value(value) {}
 
-    char operator() (char c) const { return char (c + value); }
-    int operator() () const { return value; }
+    char operator()(char c) const { return char(c + value); }
+    int operator()() const { return value; }
 };
 
-BOOST_AUTO_TEST_CASE (test_transform) {
-    using range::empty; using range::first; using range::drop;
+BOOST_AUTO_TEST_CASE(test_transform)
+{
+    using range::drop;
+    using range::empty;
+    using range::first;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
     {
-        std::string r ("");
+        std::string r("");
         {
-            auto parser = parse_ll::char_ [add (5)];
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = parse_ll::char_[add(5)];
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = fuzz (parse_ll::nothing [add (5)]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 5);
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(parse_ll::nothing[add(5)]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 5);
+            BOOST_CHECK(empty(rest(result)));
         }
     }
     {
-        std::string r ("ab");
+        std::string r("ab");
         {
-            auto parser = fuzz (parse_ll::char_) [add (4)];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 'e');
-            BOOST_CHECK_EQUAL (first (rest (result)), 'b');
+            auto parser = fuzz(parse_ll::char_)[add(4)];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 'e');
+            BOOST_CHECK_EQUAL(first(rest(result)), 'b');
         }
         {
-            auto parser = fuzz (fuzz (parse_ll::char_('b')) [add (4)]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = fuzz(fuzz(parse_ll::char_('b'))[add(4)]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
     }
 }

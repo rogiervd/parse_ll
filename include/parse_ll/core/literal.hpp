@@ -25,10 +25,10 @@ Define a parser that accepts a literal and does not output anything.
 
 #include "range/core.hpp"
 
-#include "fwd.hpp"
 #include "core.hpp"
-#include "outcome/failed.hpp"
+#include "fwd.hpp"
 #include "outcome/explicit.hpp"
+#include "outcome/failed.hpp"
 
 namespace parse_ll {
 
@@ -38,57 +38,70 @@ It can only be a view if the underlying range is guaranteed to stay in memory
 throughout the lifetime of the literal_parser object.
 */
 template <class Literal> struct literal_parser
-: public parser_base <literal_parser <Literal> >
+: public parser_base<literal_parser<Literal>>
 {
     Literal literal;
+
 public:
-    literal_parser (Literal const & literal) : literal (literal) {}
+    literal_parser(Literal const & literal) : literal(literal) {}
 };
 
 struct literal_parser_tag;
 
-template <class Literal> struct decayed_parser_tag <literal_parser <Literal>>
-{ typedef literal_parser_tag type; };
+template <class Literal> struct decayed_parser_tag<literal_parser<Literal>>
+{
+    typedef literal_parser_tag type;
+};
 
-inline literal_parser <std::string> literal (char c) {
-    return literal_parser <std::string> (std::string (1, c));
+inline literal_parser<std::string> literal(char c)
+{
+    return literal_parser<std::string>(std::string(1, c));
 }
 
-inline literal_parser <std::string> literal (std::string const & s) {
-    return literal_parser <std::string> (s);
+inline literal_parser<std::string> literal(std::string const & s)
+{
+    return literal_parser<std::string>(s);
 }
 
 namespace operation {
 
-    template <> struct parse <literal_parser_tag> {
+    template <> struct parse<literal_parser_tag>
+    {
         template <class Policy, class Literal, class Input>
-        explicit_outcome <void, Input> operator() (Policy const &,
-            literal_parser <Literal> const & parser, Input input) const
+        explicit_outcome<void, Input> operator()(
+            Policy const &, literal_parser<Literal> const & parser,
+            Input input) const
         {
-            using ::range::empty; using ::range::first; using ::range::drop;
-            auto literal = ::range::view (parser.literal);
-            while (!empty (literal) && !empty (input)) {
-                if (! (first (literal) == first (input)))
+            using ::range::drop;
+            using ::range::empty;
+            using ::range::first;
+            auto literal = ::range::view(parser.literal);
+            while (!empty(literal) && !empty(input)) {
+                if (!(first(literal) == first(input))) {
                     return failed();
-                literal = drop (literal);
-                input = drop (input);
+                }
+                literal = drop(literal);
+                input = drop(input);
             }
-            if (empty (literal))
+            if (empty(literal)) {
                 // We went through the whole literal: success.
-                return explicit_outcome <void, Input> (input);
-            else
+                return explicit_outcome<void, Input>(input);
+            } else {
                 return failed();
+            }
         }
     };
 
-    template <> struct describe <literal_parser_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "literal"; }
+    template <> struct describe<literal_parser_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "literal";
+        }
     };
 
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_LITERAL_HPP_INCLUDED
-

@@ -25,87 +25,102 @@ Define a parser that parses one character.
 
 #include "range/core.hpp"
 
-#include "fwd.hpp"
 #include "core.hpp"
+#include "fwd.hpp"
 #include "outcome/failed.hpp"
 
 namespace parse_ll {
 
 /*** char_parser ***/
 template <class Match> struct char_parser
-: public parser_base <char_parser <Match> >
+: public parser_base<char_parser<Match>>
 {
     Match match;
+
 public:
     char_parser() {}
-    char_parser (Match const & match) : match (match) {}
+    char_parser(Match const & match) : match(match) {}
 };
 
 struct char_parser_tag;
 
-template <class Match> struct decayed_parser_tag <char_parser <Match>>
-{ typedef char_parser_tag type; };
+template <class Match> struct decayed_parser_tag<char_parser<Match>>
+{
+    typedef char_parser_tag type;
+};
 
 /**
 Outcome that, if successful, returns the first element of the input as output
 and the rest of the input as rest.
 */
-template <class Input> struct char_outcome {
-    boost::optional <Input> successful_input;
+template <class Input> struct char_outcome
+{
+    boost::optional<Input> successful_input;
+
 public:
-    char_outcome (failed) {}
-    char_outcome (Input const & input) : successful_input (input) {}
+    char_outcome(failed) {}
+    char_outcome(Input const & input) : successful_input(input) {}
 };
 
 namespace operation {
 
-    template <> struct parse <char_parser_tag> {
+    template <> struct parse<char_parser_tag>
+    {
         template <class Policy, class Match, class Input>
-            char_outcome <Input> operator() (Policy const &,
-                char_parser <Match> const & parser, Input const & input) const
+        char_outcome<Input> operator()(
+            Policy const &, char_parser<Match> const & parser,
+            Input const & input) const
         {
-            if (!::range::empty (input)
-                && parser.match (::range::first (input)))
-            {
-                return char_outcome <Input> (input);
-            } else
+            if (!::range::empty(input) && parser.match(::range::first(input))) {
+                return char_outcome<Input>(input);
+            } else {
                 return failed();
+            }
         }
     };
 
-    template <> struct describe <char_parser_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "character"; }
-    };
-
-    template <class Input> struct success <char_outcome <Input>> {
-        bool operator() (char_outcome <Input> const & outcome) const {
-            return bool (outcome.successful_input);
+    template <> struct describe<char_parser_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "character";
         }
     };
 
-    template <class Input> struct output <char_outcome <Input>> {
-        auto operator() (char_outcome <Input> const & outcome) const
-            RETURNS (::range::first (outcome.successful_input.get()));
-    };
-
-    template <class Input> struct rest <char_outcome <Input>> {
-        Input operator() (char_outcome <Input> const & outcome) const {
-            return ::range::drop (outcome.successful_input.get());
+    template <class Input> struct success<char_outcome<Input>>
+    {
+        bool operator()(char_outcome<Input> const & outcome) const
+        {
+            return bool(outcome.successful_input);
         }
     };
 
-} // namespace operation
+    template <class Input> struct output<char_outcome<Input>>
+    {
+        auto operator()(char_outcome<Input> const & outcome) const
+            RETURNS(::range::first(outcome.successful_input.get()));
+    };
 
-struct match_any {
-    template <class Char> bool operator() (Char const &) const { return true; }
+    template <class Input> struct rest<char_outcome<Input>>
+    {
+        Input operator()(char_outcome<Input> const & outcome) const
+        {
+            return ::range::drop(outcome.successful_input.get());
+        }
+    };
+
+}  // namespace operation
+
+struct match_any
+{
+    template <class Char> bool operator()(Char const &) const { return true; }
 };
 
-template <class Char>
-struct match_one {
+template <class Char> struct match_one
+{
     Char expected;
-    match_one (Char const & expected) : expected (expected) {}
-    bool operator() (Char const & found) const { return found == expected; }
+    match_one(Char const & expected) : expected(expected) {}
+    bool operator()(Char const & found) const { return found == expected; }
 };
 
 /**
@@ -118,23 +133,24 @@ and
     char_('a')
 as parsers.
 */
-struct any_char_parser : char_parser <match_any>
+struct any_char_parser : char_parser<match_any>
 {
     any_char_parser() {}
 
     template <class Char>
-        char_parser <match_one <Char> > operator() (Char const & expected) const
+    char_parser<match_one<Char>> operator()(Char const & expected) const
     {
-        return char_parser <match_one <Char> > (expected);
+        return char_parser<match_one<Char>>(expected);
     }
 };
 
-template <> struct decayed_parser_tag <any_char_parser>
-{ typedef char_parser_tag type; };
+template <> struct decayed_parser_tag<any_char_parser>
+{
+    typedef char_parser_tag type;
+};
 
-static const auto char_ = any_char_parser();
+static auto const char_ = any_char_parser();
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_CHAR_HPP_INCLUDED
-
