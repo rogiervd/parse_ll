@@ -21,11 +21,11 @@ An outcome type that contains the output and the remaining input.
 #ifndef PARSE_LL_CORE_OUTCOME_SUCCESSFUL_HPP_INCLUDED
 #define PARSE_LL_CORE_OUTCOME_SUCCESSFUL_HPP_INCLUDED
 
-#include <utility>
 #include <type_traits>
+#include <utility>
 
-#include "rime/core.hpp"
 #include "rime/assert.hpp"
+#include "rime/core.hpp"
 
 #include "./core.hpp"
 
@@ -39,37 +39,44 @@ The type Output must not be a reference or const, and must be assignable.
 Alternatively, Output can be of type "void".
 They are stored directly.
 */
-template <class Output, class Input> struct successful {
-    static_assert (!std::is_const <Input>::value,
+template <class Output, class Input> struct successful
+{
+    static_assert(
+        !std::is_const<Input>::value,
         "Input should not be a reference or const");
-    static_assert (!std::is_reference <Input>::value,
+    static_assert(
+        !std::is_reference<Input>::value,
         "Input should not be a reference or const");
 
-    static_assert (!std::is_const <Output>::value,
+    static_assert(
+        !std::is_const<Output>::value,
         "Output should not be a reference or const");
-    static_assert (!std::is_reference <Output>::value,
+    static_assert(
+        !std::is_reference<Output>::value,
         "Output should not be a reference or const");
 
     Output output;
     Input rest;
+
 public:
     /**
     Construct with explicit output and rest.
     This is not available when Output is void.
     */
     template <class OtherOutput, class OtherInput>
-    successful (OtherOutput && output, OtherInput && rest)
-    : output (std::forward <OtherOutput> (output)),
-        rest (std::forward <OtherInput> (rest)) {}
+    successful(OtherOutput && output, OtherInput && rest)
+    : output(std::forward<OtherOutput>(output)),
+      rest(std::forward<OtherInput>(rest))
+    {}
 
     /**
     Construct with explicit rest, but default-constructed output.
     This is particularly useful because it generalises to when Output is void.
     */
-    explicit successful (Input const & rest) : output(), rest (rest) {}
+    explicit successful(Input const & rest) : output(), rest(rest) {}
     // These to ambiguate from below constructor.
-    explicit successful (Input & rest) : output(), rest (rest) {}
-    explicit successful (Input && rest) : output(), rest (std::move (rest)) {}
+    explicit successful(Input & rest) : output(), rest(rest) {}
+    explicit successful(Input && rest) : output(), rest(std::move(rest)) {}
 
     /**
     Construct from other outcome.
@@ -77,70 +84,86 @@ public:
     If Output is void, the type of output (other) is irrelevant.
     \pre success (other)
     */
-    template <class OtherOutcome> successful (OtherOutcome && other)
-    : output (::parse_ll::output (other)),
-        rest (::parse_ll::rest (std::forward <OtherOutcome> (other)))
+    template <class OtherOutcome> successful(OtherOutcome && other)
+    : output(::parse_ll::output(other)),
+      rest(::parse_ll::rest(std::forward<OtherOutcome>(other)))
     {
         // This assertion is almost never triggered, because output (other)
         // will have already caused a crash.
         // Sorry.
-        rime::assert_ (success (other));
+        rime::assert_(success(other));
     }
 };
 
 // Specialisation for Output = void.
-template <class Input> struct successful <void, Input> {
-    static_assert (!std::is_const <Input>::value,
+template <class Input> struct successful<void, Input>
+{
+    static_assert(
+        !std::is_const<Input>::value,
         "Input should not be a reference or const");
-    static_assert (!std::is_reference <Input>::value,
+    static_assert(
+        !std::is_reference<Input>::value,
         "Input should not be a reference or const");
 
     Input rest;
-public:
-    explicit successful (Input const & rest) : rest (rest) {}
-    explicit successful (Input & rest) : rest (rest) {}
-    explicit successful (Input && rest) : rest (std::move (rest)) {}
 
-    template <class OtherOutcome> successful (OtherOutcome && other)
-    : rest (::parse_ll::rest (std::forward <OtherOutcome> (other)))
-    { rime::assert_ (success (other)); }
+public:
+    explicit successful(Input const & rest) : rest(rest) {}
+    explicit successful(Input & rest) : rest(rest) {}
+    explicit successful(Input && rest) : rest(std::move(rest)) {}
+
+    template <class OtherOutcome> successful(OtherOutcome && other)
+    : rest(::parse_ll::rest(std::forward<OtherOutcome>(other)))
+    {
+        rime::assert_(success(other));
+    }
 };
 
 namespace operation {
 
     template <class Output, class Input>
-        struct success <successful <Output, Input>>
+    struct success<successful<Output, Input>>
     {
-        rime::true_type operator() (successful <Output, Input> const &) const
-        { return rime::true_; }
+        rime::true_type operator()(successful<Output, Input> const &) const
+        {
+            return rime::true_;
+        }
     };
 
     template <class Output, class Input>
-        struct output <successful <Output, Input>>
+    struct output<successful<Output, Input>>
     {
-        Output const & operator() (successful <Output, Input> const & outcome)
-            const
-        { return outcome.output; }
-        Output && operator() (successful <Output, Input> && outcome) const
-        { return std::move (outcome.output); }
+        Output const & operator()(
+            successful<Output, Input> const & outcome) const
+        {
+            return outcome.output;
+        }
+        Output && operator()(successful<Output, Input> && outcome) const
+        {
+            return std::move(outcome.output);
+        }
     };
     // void output: not implemented since this should never be called.
-    template <class Input> struct output <successful <void, Input>>
-    { void operator() (successful <void, Input> const &) const; };
-
-    template <class Output, class Input>
-        struct rest <successful <Output, Input>>
+    template <class Input> struct output<successful<void, Input>>
     {
-        Input const & operator() (successful <Output, Input> const & outcome)
-            const
-        { return outcome.rest; }
-        Input && operator() (successful <Output, Input> && outcome) const
-        { return std::move (outcome.rest); }
+        void operator()(successful<void, Input> const &) const;
     };
 
-} // namespace operation
+    template <class Output, class Input> struct rest<successful<Output, Input>>
+    {
+        Input const & operator()(
+            successful<Output, Input> const & outcome) const
+        {
+            return outcome.rest;
+        }
+        Input && operator()(successful<Output, Input> && outcome) const
+        {
+            return std::move(outcome.rest);
+        }
+    };
 
-} // namespace parse_ll
+}  // namespace operation
 
-#endif // PARSE_LL_CORE_OUTCOME_SUCCESSFUL_HPP_INCLUDED
+}  // namespace parse_ll
 
+#endif  // PARSE_LL_CORE_OUTCOME_SUCCESSFUL_HPP_INCLUDED

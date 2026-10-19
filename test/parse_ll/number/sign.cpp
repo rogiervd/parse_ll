@@ -32,57 +32,60 @@ Test sign parser.
 
 BOOST_AUTO_TEST_SUITE(test_parse_sign)
 
-BOOST_AUTO_TEST_CASE (test_sign) {
-    using range::empty; using range::first; using range::drop;
+BOOST_AUTO_TEST_CASE(test_sign)
+{
+    using range::drop;
+    using range::empty;
+    using range::first;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
     {
-        std::string r ("");
+        std::string r("");
         {
             auto parser = parse_ll::sign;
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), +1);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), +1);
         }
     }
     {
-        std::string r ("0");
+        std::string r("0");
         {
             auto parser = parse_ll::sign;
-            auto result = parse (parser, r);
-            BOOST_CHECK_EQUAL (output (result), +1);
-            BOOST_CHECK_EQUAL (first (rest (result)), '0');
+            auto result = parse(parser, r);
+            BOOST_CHECK_EQUAL(output(result), +1);
+            BOOST_CHECK_EQUAL(first(rest(result)), '0');
         }
     }
     {
-        std::string r ("+0");
+        std::string r("+0");
         {
-            auto parser = fuzz (parse_ll::sign);
+            auto parser = fuzz(parse_ll::sign);
             {
-                auto result = parse (parser, r);
-                BOOST_CHECK_EQUAL (output (result), +1);
-                BOOST_CHECK_EQUAL (first (rest (result)), '0');
+                auto result = parse(parser, r);
+                BOOST_CHECK_EQUAL(output(result), +1);
+                BOOST_CHECK_EQUAL(first(rest(result)), '0');
             }
             {
-                auto o = output (parse (parser, r));
-                BOOST_CHECK_EQUAL (o, +1);
+                auto o = output(parse(parser, r));
+                BOOST_CHECK_EQUAL(o, +1);
             }
         }
     }
     {
-        std::string r ("-0");
-        auto parser = fuzz (parse_ll::sign);
+        std::string r("-0");
+        auto parser = fuzz(parse_ll::sign);
         {
-            auto result = parse (parser, r);
-            BOOST_CHECK_EQUAL (output (result), -1);
-            BOOST_CHECK_EQUAL (first (rest (result)), '0');
+            auto result = parse(parser, r);
+            BOOST_CHECK_EQUAL(output(result), -1);
+            BOOST_CHECK_EQUAL(first(rest(result)), '0');
         }
         {
-            auto o = output (parse (parser, r));
-            BOOST_CHECK_EQUAL (o, -1);
+            auto o = output(parse(parser, r));
+            BOOST_CHECK_EQUAL(o, -1);
         }
     }
 }

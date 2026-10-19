@@ -21,31 +21,30 @@ Define whitespace parsers.
 #ifndef PARSE_LL_WHITESPACE_HPP_INCLUDED
 #define PARSE_LL_WHITESPACE_HPP_INCLUDED
 
-#include "fwd.hpp"
-#include "core.hpp"
-#include "literal.hpp"
 #include "alternative.hpp"
-#include "sequence.hpp"
-#include "repeat.hpp"
+#include "core.hpp"
+#include "fwd.hpp"
+#include "literal.hpp"
 #include "optional.hpp"
+#include "repeat.hpp"
+#include "sequence.hpp"
 
 namespace parse_ll {
 
 // horizontal_space
-static const auto space = literal (' ');
-static const auto tab = literal ('\t');
-static const auto one_horizontal_space = (space | tab);
-static const auto horizontal_space = *one_horizontal_space;
+static auto const space = literal(' ');
+static auto const tab = literal('\t');
+static auto const one_horizontal_space = (space | tab);
+static auto const horizontal_space = *one_horizontal_space;
 
-static const auto line_feed = literal ('\n');
-static const auto carriage_return = literal ('\r');
-static const auto newline = line_feed | (carriage_return >> -line_feed);
-static const auto vertical_space = *(line_feed | carriage_return); // *newline
+static auto const line_feed = literal('\n');
+static auto const carriage_return = literal('\r');
+static auto const newline = line_feed | (carriage_return >> -line_feed);
+static auto const vertical_space = *(line_feed | carriage_return);  // *newline
 
-static const auto one_whitespace = one_horizontal_space | newline;
-static const auto whitespace = *(space | tab | line_feed | carriage_return);
+static auto const one_whitespace = one_horizontal_space | newline;
+static auto const whitespace = *(space | tab | line_feed | carriage_return);
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_WHITESPACE_HPP_INCLUDED
-

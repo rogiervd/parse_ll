@@ -24,9 +24,9 @@ Define a polymorphic parser.
 #include <memory>
 #include <type_traits>
 
-#include "outcome.hpp"
 #include "core.hpp"
 #include "fail.hpp"
+#include "outcome.hpp"
 
 namespace parse_ll {
 
@@ -71,10 +71,14 @@ namespace detail {
     If SkipParser is void, this is a rule.
     */
     template <class Input, class SkipParser> struct skip_parser_proxy
-    { typedef SkipParser type; };
+    {
+        typedef SkipParser type;
+    };
 
-    template <class Input> struct skip_parser_proxy <Input, void>
-    { typedef rule <Input, void, fail_parser> type; };
+    template <class Input> struct skip_parser_proxy<Input, void>
+    {
+        typedef rule<Input, void, fail_parser> type;
+    };
 
     /**
     Polymorphic policy.
@@ -84,16 +88,19 @@ namespace detail {
     template <class Input, class SkipParser> class polymorphic_policy
     : public parse_policy::direct
     {
-        typedef typename skip_parser_proxy <Input, SkipParser>::type
+        typedef typename skip_parser_proxy<Input, SkipParser>::type
             skip_parser_type;
         skip_parser_type skip_parser_;
+
     protected:
         // No copying unless the derived class is happy with it.
-        polymorphic_policy (polymorphic_policy const &) = default;
+        polymorphic_policy(polymorphic_policy const &) = default;
+
     public:
         template <class OriginalPolicy>
-            polymorphic_policy (OriginalPolicy const & original_policy)
-        : skip_parser_ (original_policy.skip_parser()) {}
+        polymorphic_policy(OriginalPolicy const & original_policy)
+        : skip_parser_(original_policy.skip_parser())
+        {}
 
         skip_parser_type const & skip_parser() const { return skip_parser_; }
     };
@@ -103,139 +110,160 @@ namespace detail {
     At the moment, this does not add anything to polymorphic_policy.
     */
     template <class Input, class SkipParser>
-        class polymorphic_policy_implementation
-    : public polymorphic_policy <Input, SkipParser>
+    class polymorphic_policy_implementation
+    : public polymorphic_policy<Input, SkipParser>
     {
-        typedef polymorphic_policy <Input, SkipParser> base;
+        typedef polymorphic_policy<Input, SkipParser> base;
+
     public:
-        template <class OriginalPolicy> polymorphic_policy_implementation (
+        template <class OriginalPolicy> polymorphic_policy_implementation(
             OriginalPolicy const & original_policy)
-        : base (original_policy) {}
+        : base(original_policy)
+        {}
     };
 
     /**
     A policy with an implementation opaque to the caller.
     This class is copyable.
     */
-    template <class Input, class SkipParser> class opaque_policy {
-        typedef polymorphic_policy <Input, SkipParser> actual_policy_type;
-        std::shared_ptr <actual_policy_type> actual_policy;
+    template <class Input, class SkipParser> class opaque_policy
+    {
+        typedef polymorphic_policy<Input, SkipParser> actual_policy_type;
+        std::shared_ptr<actual_policy_type> actual_policy;
 
-        typedef typename skip_parser_proxy <Input, SkipParser>::type
+        typedef typename skip_parser_proxy<Input, SkipParser>::type
             skip_parser_type;
+
     public:
         template <class OriginalPolicy>
-            opaque_policy (OriginalPolicy const & original_policy)
-        : actual_policy (
-            std::make_shared <actual_policy_type> (original_policy)) {}
+        opaque_policy(OriginalPolicy const & original_policy)
+        : actual_policy(std::make_shared<actual_policy_type>(original_policy))
+        {}
 
         template <class Apply, class Policy, class Parser, class ActualInput>
-            auto apply_parse (Policy const & policy, Parser const & parser,
-                ActualInput && input) const
-        RETURNS (actual_policy->template apply_parse <Apply> (
-            policy, parser, std::forward <ActualInput> (input)));
+        auto apply_parse(
+            Policy const & policy, Parser const & parser,
+            ActualInput && input) const
+            RETURNS(actual_policy->template apply_parse<Apply>(
+                policy, parser, std::forward<ActualInput>(input)));
 
         skip_parser_type const & skip_parser() const
-        { return actual_policy->skip_parser(); }
+        {
+            return actual_policy->skip_parser();
+        }
     };
 
     /**
     Polymorphic parser.
     */
     template <class Input, class Output, class SkipParser>
-        class polymorphic_parser
+    class polymorphic_parser
     {
     public:
         virtual ~polymorphic_parser() {}
 
-        typedef explicit_outcome <Output, Input> outcome_type;
+        typedef explicit_outcome<Output, Input> outcome_type;
 
-        virtual outcome_type parse_from (
-            opaque_policy <Input, SkipParser> const & policy,
+        virtual outcome_type parse_from(
+            opaque_policy<Input, SkipParser> const & policy,
             Input const & input) const = 0;
     };
 
     template <class Input, class Output, class SkipParser, class Parser>
-        class polymorphic_parser_implementation
-    : public polymorphic_parser <Input, Output, SkipParser>
+    class polymorphic_parser_implementation
+    : public polymorphic_parser<Input, Output, SkipParser>
     {
         Parser parser;
+
     public:
-        polymorphic_parser_implementation (Parser const & parser)
-        : parser (parser) {}
+        polymorphic_parser_implementation(Parser const & parser)
+        : parser(parser)
+        {}
 
         virtual ~polymorphic_parser_implementation() {}
 
-        typedef typename polymorphic_parser <Input, Output, SkipParser
-            >::outcome_type outcome_type;
+        typedef
+            typename polymorphic_parser<Input, Output, SkipParser>::outcome_type
+                outcome_type;
 
-        virtual outcome_type parse_from (
-            opaque_policy <Input, SkipParser> const & policy,
+        virtual outcome_type parse_from(
+            opaque_policy<Input, SkipParser> const & policy,
             Input const & input) const
         {
-            auto outcome = ::parse_ll::parse (policy, parser, input);
-            return outcome_type (std::move (outcome));
+            auto outcome = ::parse_ll::parse(policy, parser, input);
+            return outcome_type(std::move(outcome));
         }
     };
 
-} // namespace detail
+}  // namespace detail
 
 template <class Input, class Output, class SkipParser> struct rule
-    : public parser_base <rule <Input, Output> >
+: public parser_base<rule<Input, Output>>
 {
     // This must be a shared_ptr or this class cannot be copied.
-    std::shared_ptr <detail::polymorphic_parser <Input, Output, SkipParser>>
+    std::shared_ptr<detail::polymorphic_parser<Input, Output, SkipParser>>
         implementation;
+
 public:
     rule() {}
 
-    template <class Parser> rule (Parser const & parser)
-    : implementation (new detail::polymorphic_parser_implementation <
-        Input, Output, SkipParser, Parser> (parser)) {}
+    template <class Parser> rule(Parser const & parser)
+    : implementation(new detail::polymorphic_parser_implementation<
+                     Input, Output, SkipParser, Parser>(parser))
+    {}
 };
 
 struct rule_tag;
 template <class Input, class Output, class SkipParser>
-    struct decayed_parser_tag <rule <Input, Output, SkipParser>>
-{ typedef rule_tag type; };
+struct decayed_parser_tag<rule<Input, Output, SkipParser>>
+{
+    typedef rule_tag type;
+};
 
 namespace operation {
 
-    template <> struct parse <rule_tag> {
-        template <class Policy, class RuleInput, class Output, class SkipParser,
-                class ActualInput>
+    template <> struct parse<rule_tag>
+    {
+        template <
+            class Policy, class RuleInput, class Output, class SkipParser,
+            class ActualInput>
         // Always generate a return type, to prevent strange errors.
-            explicit_outcome <Output, ActualInput> operator() (
-                Policy const & outside_policy,
-                rule <RuleInput, Output, SkipParser> const & parser,
-                ActualInput const & input) const
+        explicit_outcome<Output, ActualInput> operator()(
+            Policy const & outside_policy,
+            rule<RuleInput, Output, SkipParser> const & parser,
+            ActualInput const & input) const
         {
             // Generate an error here.
-            static_assert (std::is_same <RuleInput, ActualInput>::value,
+            static_assert(
+                std::is_same<RuleInput, ActualInput>::value,
                 "The rule parser can only parse with a fixed Input type");
-            detail::opaque_policy <RuleInput, SkipParser> inside_policy (
+            detail::opaque_policy<RuleInput, SkipParser> inside_policy(
                 outside_policy);
-            return parser.implementation->parse_from (inside_policy, input);
+            return parser.implementation->parse_from(inside_policy, input);
         }
     };
 
-    template <> struct describe <rule_tag> {
-        template <class Rule> const char * operator() (Rule const &) const
-        { return "rule (opaque)"; }
+    template <> struct describe<rule_tag>
+    {
+        template <class Rule> char const * operator()(Rule const &) const
+        {
+            return "rule (opaque)";
+        }
     };
 
-} // namespace operation
+}  // namespace operation
 
-class rule_explicit_skip_parser : parse_policy::direct {
+class rule_explicit_skip_parser : parse_policy::direct
+{
 public:
     template <class OriginalPolicy>
-        rule_explicit_skip_parser (OriginalPolicy const &) {}
+    rule_explicit_skip_parser(OriginalPolicy const &)
+    {}
 
     // This is not supposed to be called.
     void skip_parser();
 };
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_RULE_HPP_INCLUDED_HPP
-

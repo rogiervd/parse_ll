@@ -23,58 +23,59 @@ Test file_range.
 
 #include "parse_ll/support/file_range.hpp"
 
-#include <type_traits>
 #include <stdexcept>
+#include <type_traits>
 
 BOOST_AUTO_TEST_SUITE(test_parse_file_range)
 
-BOOST_AUTO_TEST_CASE (test_file_range) {
-    assert (boost::unit_test::framework::master_test_suite().argc == 2);
+BOOST_AUTO_TEST_CASE(test_file_range)
+{
+    assert(boost::unit_test::framework::master_test_suite().argc == 2);
     std::string example_file_name =
-        boost::unit_test::framework::master_test_suite().argv [1];
+        boost::unit_test::framework::master_test_suite().argv[1];
 
+    using range::drop;
     using range::empty;
     using range::first;
-    using range::drop;
     {
-        BOOST_CHECK_THROW (range::file_range r ("non_existing_file.txt"),
-            std::exception);
+        BOOST_CHECK_THROW(
+            range::file_range r("non_existing_file.txt"), std::exception);
     }
     {
-        range::file_range r (example_file_name);
-        BOOST_CHECK_EQUAL (first (r), 'T');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), 'e');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), 's');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), 't');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), '.');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), '\n');
-        r = drop (r);
+        range::file_range r(example_file_name);
+        BOOST_CHECK_EQUAL(first(r), 'T');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), 'e');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), 's');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), 't');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), '.');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), '\n');
+        r = drop(r);
         auto save_r = r;
-        BOOST_CHECK_EQUAL (first (r), 'E');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), 'n');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), 'd');
-        r = drop (r);
-        BOOST_CHECK_EQUAL (first (r), '\n');
-        r = drop (r);
-        BOOST_CHECK (empty (r));
+        BOOST_CHECK_EQUAL(first(r), 'E');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), 'n');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), 'd');
+        r = drop(r);
+        BOOST_CHECK_EQUAL(first(r), '\n');
+        r = drop(r);
+        BOOST_CHECK(empty(r));
 
         // Second pass
-        BOOST_CHECK_EQUAL (first (save_r), 'E');
-        save_r = drop (save_r);
-        BOOST_CHECK_EQUAL (first (save_r), 'n');
-        save_r = drop (save_r);
-        BOOST_CHECK_EQUAL (first (save_r), 'd');
-        save_r = drop (save_r);
-        BOOST_CHECK_EQUAL (first (save_r), '\n');
-        save_r = drop (save_r);
-        BOOST_CHECK (empty (save_r));
+        BOOST_CHECK_EQUAL(first(save_r), 'E');
+        save_r = drop(save_r);
+        BOOST_CHECK_EQUAL(first(save_r), 'n');
+        save_r = drop(save_r);
+        BOOST_CHECK_EQUAL(first(save_r), 'd');
+        save_r = drop(save_r);
+        BOOST_CHECK_EQUAL(first(save_r), '\n');
+        save_r = drop(save_r);
+        BOOST_CHECK(empty(save_r));
     }
 }
 

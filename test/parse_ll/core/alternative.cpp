@@ -34,161 +34,159 @@ Test alternative parser.
 
 #include <boost/phoenix/core/value.hpp>
 
-#include "../helper/object.hpp"
 #include "../helper/fuzz_parser.hpp"
+#include "../helper/object.hpp"
 
 BOOST_AUTO_TEST_SUITE(test_parse_alternative)
 
 
-BOOST_AUTO_TEST_CASE (test_alternative) {
-    using range::empty; using range::first; using range::drop;
+BOOST_AUTO_TEST_CASE(test_alternative)
+{
+    using range::drop;
+    using range::empty;
+    using range::first;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
 
     using boost::phoenix::val;
     {
-        std::string r ("");
+        std::string r("");
         {
-            auto parser = parse_ll::char_ ('a') | parse_ll::char_ ('b');
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = parse_ll::char_('a') | parse_ll::char_('b');
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
             // With one sub-parser.
-            auto parser = alternative (parse_ll::char_ ('a'));
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = alternative(parse_ll::char_('a'));
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = alternative (
-                parse_ll::char_ ('a'), parse_ll::char_ ('b'));
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser =
+                alternative(parse_ll::char_('a'), parse_ll::char_('b'));
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = parse_ll::char_ ('a') | parse_ll::char_ ('b')
-                | fuzz (parse_ll::nothing [boost::phoenix::val ('c')]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 'c');
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = parse_ll::char_('a') | parse_ll::char_('b')
+                | fuzz(parse_ll::nothing[boost::phoenix::val('c')]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 'c');
+            BOOST_CHECK(empty(rest(result)));
         }
         {
-            auto parser = alternative (
-                parse_ll::char_ ('a'), parse_ll::char_ ('b'),
-                fuzz (parse_ll::nothing [boost::phoenix::val ('c')]));
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 'c');
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = alternative(
+                parse_ll::char_('a'), parse_ll::char_('b'),
+                fuzz(parse_ll::nothing[boost::phoenix::val('c')]));
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 'c');
+            BOOST_CHECK(empty(rest(result)));
         }
     }
     {
-        std::string r ("ab");
+        std::string r("ab");
         {
-            auto parser = alternative (parse_ll::char_ ('a') [val (1)]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (output (result), 1);
-            BOOST_CHECK_EQUAL (first (rest (result)), 'b');
+            auto parser = alternative(parse_ll::char_('a')[val(1)]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(output(result), 1);
+            BOOST_CHECK_EQUAL(first(rest(result)), 'b');
         }
         {
             auto parser =
-                parse_ll::char_ ('a') [val (1)]
-                | parse_ll::char_ ('b') [val (2)];
-            auto result1 = parse (parser, r);
-            BOOST_CHECK (success (result1));
-            BOOST_CHECK_EQUAL (output (result1), 1);
-            auto result2 = parse (parser, rest (result1));
-            BOOST_CHECK_EQUAL (output (result2), 2);
-            BOOST_CHECK (empty (rest (result2)));
+                parse_ll::char_('a')[val(1)] | parse_ll::char_('b')[val(2)];
+            auto result1 = parse(parser, r);
+            BOOST_CHECK(success(result1));
+            BOOST_CHECK_EQUAL(output(result1), 1);
+            auto result2 = parse(parser, rest(result1));
+            BOOST_CHECK_EQUAL(output(result2), 2);
+            BOOST_CHECK(empty(rest(result2)));
         }
         {
-            auto parser =
-                alternative (parse_ll::char_ ('a') [val (1)],
-                    parse_ll::char_ ('b') [val (2)]);
-            auto result1 = parse (parser, r);
-            BOOST_CHECK (success (result1));
-            BOOST_CHECK_EQUAL (output (result1), 1);
-            auto result2 = parse (parser, rest (result1));
-            BOOST_CHECK_EQUAL (output (result2), 2);
-            BOOST_CHECK (empty (rest (result2)));
+            auto parser = alternative(
+                parse_ll::char_('a')[val(1)], parse_ll::char_('b')[val(2)]);
+            auto result1 = parse(parser, r);
+            BOOST_CHECK(success(result1));
+            BOOST_CHECK_EQUAL(output(result1), 1);
+            auto result2 = parse(parser, rest(result1));
+            BOOST_CHECK_EQUAL(output(result2), 2);
+            BOOST_CHECK(empty(rest(result2)));
         }
         {
-            auto parser = fuzz (
-                parse_ll::char_ ('b') [val (2)]
-                | parse_ll::char_ ('a') [val (1)]);
+            auto parser = fuzz(
+                parse_ll::char_('b')[val(2)] | parse_ll::char_('a')[val(1)]);
             {
-                auto result1 = parse (parser, r);
-                BOOST_CHECK (success (result1));
-                BOOST_CHECK_EQUAL (output (result1), 1);
-                auto result2 = parse (parser, rest (result1));
-                BOOST_CHECK_EQUAL (output (result2), 2);
-                BOOST_CHECK (empty (rest (result2)));
-                BOOST_CHECK (empty (rest (result2)));
+                auto result1 = parse(parser, r);
+                BOOST_CHECK(success(result1));
+                BOOST_CHECK_EQUAL(output(result1), 1);
+                auto result2 = parse(parser, rest(result1));
+                BOOST_CHECK_EQUAL(output(result2), 2);
+                BOOST_CHECK(empty(rest(result2)));
+                BOOST_CHECK(empty(rest(result2)));
             }
             {
-                auto o = output (parse (parser, r));
-                BOOST_CHECK_EQUAL (o, 1);
+                auto o = output(parse(parser, r));
+                BOOST_CHECK_EQUAL(o, 1);
             }
         }
         {
-            auto parser = fuzz (alternative (
-                parse_ll::char_ ('b') [val (2)],
-                parse_ll::char_ ('a') [val (1)]));
+            auto parser = fuzz(alternative(
+                parse_ll::char_('b')[val(2)], parse_ll::char_('a')[val(1)]));
             {
-                auto result1 = parse (parser, r);
-                BOOST_CHECK (success (result1));
-                BOOST_CHECK_EQUAL (output (result1), 1);
-                auto result2 = parse (parser, rest (result1));
-                BOOST_CHECK_EQUAL (output (result2), 2);
-                BOOST_CHECK (empty (rest (result2)));
+                auto result1 = parse(parser, r);
+                BOOST_CHECK(success(result1));
+                BOOST_CHECK_EQUAL(output(result1), 1);
+                auto result2 = parse(parser, rest(result1));
+                BOOST_CHECK_EQUAL(output(result2), 2);
+                BOOST_CHECK(empty(rest(result2)));
             }
             {
-                auto o = output (parse (parser, r));
-                BOOST_CHECK_EQUAL (o, 1);
+                auto o = output(parse(parser, r));
+                BOOST_CHECK_EQUAL(o, 1);
             }
         }
         {
             // The first parser that match should be used.
-            auto parser = fuzz (
-                fuzz (parse_ll::char_ ('b') [always (object (2))])
-                | parse_ll::char_ ('a') [always (object (1))]
-                | parse_ll::nothing [always (object (3))]);
+            auto parser = fuzz(
+                fuzz(parse_ll::char_('b')[always(object(2))])
+                | parse_ll::char_('a')[always(object(1))]
+                | parse_ll::nothing[always(object(3))]);
             {
-                auto result1 = parse (parser, r);
-                BOOST_CHECK (success (result1));
-                BOOST_CHECK_EQUAL (output (result1), 1);
-                auto result2 = parse (parser, rest (result1));
-                BOOST_CHECK_EQUAL (output (result2), 2);
+                auto result1 = parse(parser, r);
+                BOOST_CHECK(success(result1));
+                BOOST_CHECK_EQUAL(output(result1), 1);
+                auto result2 = parse(parser, rest(result1));
+                BOOST_CHECK_EQUAL(output(result2), 2);
             }
             {
-                auto o = output (parse (parser, r));
-                BOOST_CHECK_EQUAL (o, 1);
+                auto o = output(parse(parser, r));
+                BOOST_CHECK_EQUAL(o, 1);
             }
         }
         {
-            auto parser = fuzz (alternative (
-                fuzz (parse_ll::char_ ('b') [always (object (2))]),
-                parse_ll::char_ ('a') [always (object (1))],
-                parse_ll::nothing [always (object (3))]));
+            auto parser = fuzz(alternative(
+                fuzz(parse_ll::char_('b')[always(object(2))]),
+                parse_ll::char_('a')[always(object(1))],
+                parse_ll::nothing[always(object(3))]));
             {
-                auto result1 = parse (parser, r);
-                BOOST_CHECK (success (result1));
-                BOOST_CHECK_EQUAL (output (result1), 1);
-                auto result2 = parse (parser, rest (result1));
-                BOOST_CHECK_EQUAL (output (result2), 2);
+                auto result1 = parse(parser, r);
+                BOOST_CHECK(success(result1));
+                BOOST_CHECK_EQUAL(output(result1), 1);
+                auto result2 = parse(parser, rest(result1));
+                BOOST_CHECK_EQUAL(output(result2), 2);
             }
             {
-                auto o = output (parse (parser, r));
-                BOOST_CHECK_EQUAL (o, 1);
+                auto o = output(parse(parser, r));
+                BOOST_CHECK_EQUAL(o, 1);
             }
         }
     }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

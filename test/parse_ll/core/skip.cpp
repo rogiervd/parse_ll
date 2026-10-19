@@ -38,179 +38,192 @@ Test skip and no_skip.
 /**
 Silly parser that just uses the skip parser.
 */
-struct silly_skip_parser : parse_ll::parser_base <silly_skip_parser>
-{ silly_skip_parser() {} };
+struct silly_skip_parser : parse_ll::parser_base<silly_skip_parser>
+{
+    silly_skip_parser() {}
+};
 
 struct silly_skip_parser_tag;
 
 namespace parse_ll {
-    template <> struct decayed_parser_tag <silly_skip_parser>
-    { typedef silly_skip_parser_tag type; };
-} // namespace parse_ll
+template <> struct decayed_parser_tag<silly_skip_parser>
+{
+    typedef silly_skip_parser_tag type;
+};
+}  // namespace parse_ll
 
-static const auto silly_skip = silly_skip_parser();
+static auto const silly_skip = silly_skip_parser();
 
 namespace parse_ll { namespace operation {
 
-    template <> struct parse <silly_skip_parser_tag> {
+    template <> struct parse<silly_skip_parser_tag>
+    {
         template <class Policy, class Input>
-            parse_ll::explicit_outcome <void, Input>
-                operator() (Policy const & policy, silly_skip_parser const &,
-                    Input const & input) const
+        parse_ll::explicit_outcome<void, Input> operator()(
+            Policy const & policy, silly_skip_parser const &,
+            Input const & input) const
         {
-            return explicit_outcome <void, Input> (
-                parse_ll::skip_over (policy.skip_parser(), input));
+            return explicit_outcome<void, Input>(
+                parse_ll::skip_over(policy.skip_parser(), input));
         }
     };
 
-}} // namespace parse_ll::operation
+}}  // namespace parse_ll::operation
 
 BOOST_AUTO_TEST_SUITE(test_parse_skip)
 
-BOOST_AUTO_TEST_CASE (test_skip) {
-    using range::empty; using range::first; using range::drop;
+BOOST_AUTO_TEST_CASE(test_skip)
+{
+    using range::drop;
+    using range::empty;
+    using range::first;
 
-    using parse_ll::parse;
-    using parse_ll::success;
     using parse_ll::output;
+    using parse_ll::parse;
     using parse_ll::rest;
+    using parse_ll::success;
     {
-        std::string r (" ");
+        std::string r(" ");
         {
             auto parser = silly_skip;
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), ' ');
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
         {
-            auto parser = parse_ll::skip (parse_ll::literal (' ')) [silly_skip];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = parse_ll::skip(parse_ll::literal(' '))[silly_skip];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
         {
-            auto parser = fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [fuzz (silly_skip)]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(
+                parse_ll::skip(fuzz(parse_ll::literal(' ')))[fuzz(silly_skip)]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
         {
             // Add no_skip outside -- should not make a difference.
-            auto parser = parse_ll::no_skip [fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [fuzz (silly_skip)])];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = parse_ll::no_skip[fuzz(
+                parse_ll::skip(
+                    fuzz(parse_ll::literal(' ')))[fuzz(silly_skip)])];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
         {
-            auto parser = fuzz (parse_ll::no_skip [fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [fuzz (silly_skip)])]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(
+                parse_ll::no_skip[fuzz(
+                    parse_ll::skip(
+                        fuzz(parse_ll::literal(' ')))[fuzz(silly_skip)])]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
         {
             // no_skip inside; this inhibits skipping again.
-            auto parser = fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [fuzz (
-                    parse_ll::no_skip [silly_skip])]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), ' ');
+            auto parser = fuzz(
+                parse_ll::skip(fuzz(
+                    parse_ll::literal(
+                        ' ')))[fuzz(parse_ll::no_skip[silly_skip])]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
         {
-            auto parser = parse_ll::no_skip [fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [fuzz (
-                    parse_ll::no_skip [silly_skip])])];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), ' ');
+            auto parser = parse_ll::no_skip[fuzz(
+                parse_ll::skip(fuzz(parse_ll::literal(' ')))[fuzz(
+                    parse_ll::no_skip[silly_skip])])];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
         {
             // Nested no_skip.
-            auto parser = parse_ll::no_skip [fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [parse_ll::no_skip [fuzz (
-                    parse_ll::no_skip [silly_skip])]])];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), ' ');
+            auto parser = parse_ll::no_skip[fuzz(
+                parse_ll::skip(fuzz(parse_ll::literal(' ')))
+                    [parse_ll::no_skip[fuzz(parse_ll::no_skip[silly_skip])]])];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
         {
             // Nested no_skip without fuzz() in between.
-            auto parser = parse_ll::no_skip [fuzz (parse_ll::skip (
-                fuzz (parse_ll::literal (' '))) [parse_ll::no_skip [
-                    parse_ll::no_skip [silly_skip]]])];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL (first (rest (result)), ' ');
+            auto parser = parse_ll::no_skip[fuzz(
+                parse_ll::skip(fuzz(parse_ll::literal(' ')))
+                    [parse_ll::no_skip[parse_ll::no_skip[silly_skip]]])];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
     }
 
     {
-        std::string r (" a ");
+        std::string r(" a ");
         {
-            auto parser = parse_ll::literal ('a');
-            auto result = parse (parser, r);
-            BOOST_CHECK (!success (result));
+            auto parser = parse_ll::literal('a');
+            auto result = parse(parser, r);
+            BOOST_CHECK(!success(result));
         }
         {
-            auto parser = parse_ll::skip_pad (parse_ll::literal (' ')) [
-                parse_ll::literal ('a')];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
-        }
-    }
-    {
-        // Skip should be optional
-        std::string r (" a");
-        {
-            auto parser =
-                fuzz (parse_ll::skip_pad (fuzz (parse_ll::literal (' '))) [
-                        fuzz (parse_ll::literal ('a'))]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = parse_ll::skip_pad(
+                parse_ll::literal(' '))[parse_ll::literal('a')];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
     }
     {
         // Skip should be optional
-        std::string r ("a ");
+        std::string r(" a");
         {
-            auto parser = parse_ll::skip_pad (parse_ll::literal (' ')) [
-                fuzz (parse_ll::literal ('a'))];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(
+                parse_ll::skip_pad(fuzz(
+                    parse_ll::literal(' ')))[fuzz(parse_ll::literal('a'))]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
+        }
+    }
+    {
+        // Skip should be optional
+        std::string r("a ");
+        {
+            auto parser = parse_ll::skip_pad(
+                parse_ll::literal(' '))[fuzz(parse_ll::literal('a'))];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
         {
             // no_skip when the main parse already does no skipping.
-            auto parser = parse_ll::no_skip [parse_ll::literal ('a')];
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK_EQUAL  (first (rest (result)), ' ');
+            auto parser = parse_ll::no_skip[parse_ll::literal('a')];
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
     }
     {
-        std::string r ("   ");
+        std::string r("   ");
         {
             // Try out silly_skip in the middle.
-            auto parser = fuzz (parse_ll::skip_pad (parse_ll::literal (' ')) [
-                silly_skip]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser =
+                fuzz(parse_ll::skip_pad(parse_ll::literal(' '))[silly_skip]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
     }
     {
-        std::string r ("  ");
+        std::string r("  ");
         {
-            auto parser = fuzz (parse_ll::skip_pad (parse_ll::literal (' ')) [
-                parse_ll::no_skip [silly_skip]]);
-            auto result = parse (parser, r);
-            BOOST_CHECK (success (result));
-            BOOST_CHECK (empty (rest (result)));
+            auto parser = fuzz(
+                parse_ll::skip_pad(
+                    parse_ll::literal(' '))[parse_ll::no_skip[silly_skip]]);
+            auto result = parse(parser, r);
+            BOOST_CHECK(success(result));
+            BOOST_CHECK(empty(rest(result)));
         }
     }
 }

@@ -26,8 +26,8 @@ parsers until one of them succeeds.
 
 #include "utility/returns.hpp"
 
-#include "fwd.hpp"
 #include "core.hpp"
+#include "fwd.hpp"
 
 #include "outcome.hpp"
 
@@ -36,19 +36,23 @@ parsers until one of them succeeds.
 namespace parse_ll {
 
 template <class Parser1, class Parser2> struct alternative_parser
-: parser_base <alternative_parser <Parser1, Parser2> >
+: parser_base<alternative_parser<Parser1, Parser2>>
 {
     Parser1 parser_1;
     Parser2 parser_2;
+
 public:
-    alternative_parser (Parser1 const & parser_1, Parser2 const & parser_2)
-    : parser_1 (parser_1), parser_2 (parser_2) {}
+    alternative_parser(Parser1 const & parser_1, Parser2 const & parser_2)
+    : parser_1(parser_1), parser_2(parser_2)
+    {}
 };
 
 struct alternative_parser_tag;
 template <class Parser1, class Parser2>
-    struct decayed_parser_tag <alternative_parser <Parser1, Parser2>>
-{ typedef alternative_parser_tag type; };
+struct decayed_parser_tag<alternative_parser<Parser1, Parser2>>
+{
+    typedef alternative_parser_tag type;
+};
 
 template <class... Parsers> struct make_alternative;
 
@@ -59,30 +63,33 @@ The number of parsers must be at least 1.
 
 This uses make_alternative because GCC 4.6 didn't like the one with functions.
 */
-template <class ... Parsers> inline
-    typename make_alternative <Parsers...>::result_type
-    alternative (Parsers const & ... parsers)
+template <class... Parsers>
+inline typename make_alternative<Parsers...>::result_type alternative(
+    Parsers const &... parsers)
 {
-    make_alternative <Parsers...> implementation;
-    return implementation (parsers...);
+    make_alternative<Parsers...> implementation;
+    return implementation(parsers...);
 }
 
-template <class Parser> struct make_alternative <Parser> {
+template <class Parser> struct make_alternative<Parser>
+{
     typedef Parser result_type;
-    Parser operator() (Parser const & parser) const { return parser; }
+    Parser operator()(Parser const & parser) const { return parser; }
 };
 
 template <class Parser1, class Parser2, class... Parsers>
-struct make_alternative <Parser1, Parser2, Parsers...> {
-    typedef alternative_parser <Parser1, Parser2> first_two;
-    typedef make_alternative <first_two, Parsers...> sub_make;
+struct make_alternative<Parser1, Parser2, Parsers...>
+{
+    typedef alternative_parser<Parser1, Parser2> first_two;
+    typedef make_alternative<first_two, Parsers...> sub_make;
     typedef typename sub_make::result_type result_type;
 
-    result_type operator() (Parser1 const & parser_1, Parser2 const & parser_2,
-        Parsers const & ... parsers) const
+    result_type operator()(
+        Parser1 const & parser_1, Parser2 const & parser_2,
+        Parsers const &... parsers) const
     {
         sub_make sub;
-        return sub (first_two (parser_1, parser_2), parsers...);
+        return sub(first_two(parser_1, parser_2), parsers...);
     }
 };
 
@@ -104,59 +111,65 @@ RETURNS (alternative (
 
 namespace operation {
 
-    template <> struct parse <alternative_parser_tag> {
+    template <> struct parse<alternative_parser_tag>
+    {
         template <class Policy, class Parser1, class Parser2, class Input>
-            struct result
+        struct result
         {
-            typedef typename detail::parser_outcome <Policy, Parser1, Input
-                >::type outcome_1_type;
-            typedef typename detail::parser_outcome <Policy, Parser2, Input
-                >::type outcome_2_type;
-            typedef typename detail::outcome_output <outcome_1_type>::type
+            typedef
+                typename detail::parser_outcome<Policy, Parser1, Input>::type
+                    outcome_1_type;
+            typedef
+                typename detail::parser_outcome<Policy, Parser2, Input>::type
+                    outcome_2_type;
+            typedef typename detail::outcome_output<outcome_1_type>::type
                 output_1_type;
-            typedef typename detail::outcome_output <outcome_2_type>::type
+            typedef typename detail::outcome_output<outcome_2_type>::type
                 output_2_type;
 
-            typedef typename std::decay <decltype (true ?
-                    ::parse_ll::output (std::declval <outcome_1_type>()) :
-                    ::parse_ll::output (std::declval <outcome_2_type>()))
-                >::type output_type;
-            typedef explicit_outcome <output_type, Input> type;
+            typedef typename std::decay<
+                decltype(true ? ::parse_ll::output(std::declval<outcome_1_type>()) : ::parse_ll::output(std::declval<outcome_2_type>()))>::
+                type output_type;
+            typedef explicit_outcome<output_type, Input> type;
         };
 
         template <class Policy, class Parser1, class Parser2, class Input>
-            typename result <Policy, Parser1, Parser2, Input>::type
-        operator() (Policy const & policy,
-            alternative_parser <Parser1, Parser2> const & parser,
+        typename result<Policy, Parser1, Parser2, Input>::type operator()(
+            Policy const & policy,
+            alternative_parser<Parser1, Parser2> const & parser,
             Input const & input) const
         {
-            typedef typename result <Policy, Parser1, Parser2, Input>::type
+            typedef typename result<Policy, Parser1, Parser2, Input>::type
                 result_type;
             {
                 // Try parser 1
                 auto outcome_1 =
-                    parse_ll::parse (policy, parser.parser_1, input);
-                if (::parse_ll::success (outcome_1))
-                    return result_type (std::move (outcome_1));
+                    parse_ll::parse(policy, parser.parser_1, input);
+                if (::parse_ll::success(outcome_1)) {
+                    return result_type(std::move(outcome_1));
+                }
                 // Failed; destruct outcome_1.
             }
             // Try parser 2
-            auto outcome_2 = parse_ll::parse (policy, parser.parser_2, input);
-            if (::parse_ll::success (outcome_2))
-                return result_type (std::move (outcome_2));
+            auto outcome_2 = parse_ll::parse(policy, parser.parser_2, input);
+            if (::parse_ll::success(outcome_2)) {
+                return result_type(std::move(outcome_2));
+            }
             // Otherwise, fail.
             return failed();
         }
     };
 
-    template <> struct describe <alternative_parser_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "alternative"; }
+    template <> struct describe<alternative_parser_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "alternative";
+        }
     };
 
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_ALTERNATIVE_HPP_INCLUDED
-

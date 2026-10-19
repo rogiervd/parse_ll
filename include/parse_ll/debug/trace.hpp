@@ -63,45 +63,50 @@ namespace parse_policy {
     This may still yield some spurious not.
     */
     template <class OriginalPolicy, class Observer, class Stop>
-        struct trace_policy
-    : public OriginalPolicy
+    struct trace_policy : public OriginalPolicy
     {
         Observer observer;
         Stop stop;
 
         mutable bool inhibit;
-        std::weak_ptr <int> parent_depth;
-        mutable std::vector <std::shared_ptr <int>> depths;
+        std::weak_ptr<int> parent_depth;
+        mutable std::vector<std::shared_ptr<int>> depths;
 
         bool inhibited() const { return inhibit || parent_depth.expired(); }
 
-        int current_depth() const {
-            assert (!inhibited());
-            if (depths.empty())
+        int current_depth() const
+        {
+            assert(!inhibited());
+            if (depths.empty()) {
                 return *parent_depth.lock();
-            else
+            } else {
                 return *depths.back();
+            }
         }
 
     public:
-        explicit trace_policy (OriginalPolicy const & original_policy_,
-            Observer const & observer, Stop const & stop,
-            std::shared_ptr <int> const & root_depth)
-        : OriginalPolicy (original_policy_), observer (observer), stop (stop),
-            inhibit (false), parent_depth (root_depth) {}
+        explicit trace_policy(
+            OriginalPolicy const & original_policy_, Observer const & observer,
+            Stop const & stop, std::shared_ptr<int> const & root_depth)
+        : OriginalPolicy(original_policy_), observer(observer), stop(stop),
+          inhibit(false), parent_depth(root_depth)
+        {}
 
-        trace_policy (trace_policy const & other)
-        : OriginalPolicy (other), observer (other.observer), stop (other.stop),
-          inhibit (other.inhibit) {
-            if (other.depths.empty())
+        trace_policy(trace_policy const & other)
+        : OriginalPolicy(other), observer(other.observer), stop(other.stop),
+          inhibit(other.inhibit)
+        {
+            if (other.depths.empty()) {
                 // Simple copy
                 parent_depth = other.parent_depth;
-            else
+            } else {
                 // Dependent copy
                 parent_depth = other.depths.back();
+            }
         }
 
-        ~trace_policy() {
+        ~trace_policy()
+        {
             /*
             I'm not sure this assertion can never be triggered normally.
             It can be triggered during exception unwinding, which is confusing.
@@ -110,81 +115,93 @@ namespace parse_policy {
         }
 
         template <class Apply, class Policy, class Parser, class Input>
-            auto apply_parse (
-                Policy const & policy,
-                Parser const & parser, Input const & input) const
-        // The return type of the original policy.
-        -> decltype (std::declval <OriginalPolicy const &>().template
-            apply_parse <Apply> (policy, parser, input))
+        auto apply_parse(
+            Policy const & policy, Parser const & parser,
+            Input const & input) const
+            // The return type of the original policy.
+            -> decltype(std::declval<OriginalPolicy const &>()
+                            .template apply_parse<Apply>(policy, parser, input))
         {
-            if (inhibited())
+            if (inhibited()) {
                 // Just call the original policy.
-                return original_policy().template apply_parse <Apply> (
+                return original_policy().template apply_parse<Apply>(
                     policy, parser, input);
-            else {
+            } else {
                 int depth = current_depth() + 1;
-                depths.push_back (std::make_shared <int> (depth));
+                depths.push_back(std::make_shared<int>(depth));
                 // Notify observer.
-                observer.start_parse (depth, parser, input);
+                observer.start_parse(depth, parser, input);
 
-                if (stop (parser))
+                if (stop(parser)) {
                     inhibit = true;
+                }
 
                 // Call the original policy.
-                auto outcome = original_policy().template apply_parse <Apply> (
+                auto outcome = original_policy().template apply_parse<Apply>(
                     policy, parser, input);
 
-                if (inhibit)
+                if (inhibit) {
                     inhibit = false;
+                }
 
                 // Notify observer.
-                if (success (outcome)) {
+                if (success(outcome)) {
                     // Run sub-parsers through the input once.
-                    Input remaining = rest (outcome);
+                    Input remaining = rest(outcome);
                     // Inhibit any further notifications.
                     depths.pop_back();
-                    observer.success (depth, parser, input, remaining, outcome);
+                    observer.success(depth, parser, input, remaining, outcome);
                 } else {
                     depths.pop_back();
-                    observer.no_success (depth, parser, input);
+                    observer.no_success(depth, parser, input);
                 }
-                return std::move (outcome);
+                return std::move(outcome);
             }
         }
 
         OriginalPolicy const & original_policy() const { return *this; }
     };
 
-    template <class Observer, class Stop> struct wrap_trace {
+    template <class Observer, class Stop> struct wrap_trace
+    {
         Observer observer;
         Stop stop;
-        std::shared_ptr <int> root_depth;
+        std::shared_ptr<int> root_depth;
+
     public:
-        wrap_trace (Observer const & observer, Stop const & stop)
-        : observer (observer), stop (stop),
-            root_depth (std::make_shared <int> (-1)) {}
+        wrap_trace(Observer const & observer, Stop const & stop)
+        : observer(observer), stop(stop), root_depth(std::make_shared<int>(-1))
+        {}
 
-        template <class OriginalPolicy> auto
-        operator() (OriginalPolicy const & original_policy) const
-        RETURNS (trace_policy <OriginalPolicy, Observer, Stop> (
-            original_policy, observer, stop, root_depth));
+        template <class OriginalPolicy>
+        auto operator()(OriginalPolicy const & original_policy) const RETURNS(
+            trace_policy<OriginalPolicy, Observer, Stop>(
+                original_policy, observer, stop, root_depth));
     };
 
-    struct no_stop {
-        template <class Parser>
-        bool operator() (Parser const &) const { return false; }
+    struct no_stop
+    {
+        template <class Parser> bool operator()(Parser const &) const
+        {
+            return false;
+        }
     };
 
-    struct stop_at_no_skip {
-        template <class Parser>
-        bool operator() (Parser const &) const { return false; }
+    struct stop_at_no_skip
+    {
+        template <class Parser> bool operator()(Parser const &) const
+        {
+            return false;
+        }
 
-        template <class SubParser> bool operator() (
-            change_policy <SubParser, convert_policy_no_skip> const &) const
-        { return true; }
+        template <class SubParser> bool operator()(
+            change_policy<SubParser, convert_policy_no_skip> const &) const
+        {
+            return true;
+        }
     };
 
-} // namespace parse_policy
+}  // namespace parse_policy
 
 /**
 Let an observer know about the progress of a parser.
@@ -194,19 +211,17 @@ Spurious trace messages from lazy parsers are inhibited.
 This does make this policy quite slow.
 It is only for debugging.
 */
-template <class Observer, class Stop> inline
-    change_policy_directive <parse_policy::wrap_trace <Observer, Stop>>
-    trace (Observer const & observer, Stop const & stop)
+template <class Observer, class Stop>
+inline change_policy_directive<parse_policy::wrap_trace<Observer, Stop>> trace(
+    Observer const & observer, Stop const & stop)
 {
-    return change_policy_directive <parse_policy::wrap_trace <Observer, Stop>> (
-        parse_policy::wrap_trace <Observer, Stop> (observer, stop));
+    return change_policy_directive<parse_policy::wrap_trace<Observer, Stop>>(
+        parse_policy::wrap_trace<Observer, Stop>(observer, stop));
 }
 
-template <class Observer> inline auto
-    trace (Observer const & observer)
-RETURNS (trace (observer, parse_policy::no_stop()));
+template <class Observer> inline auto trace(Observer const & observer)
+    RETURNS(trace(observer, parse_policy::no_stop()));
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_DEBUG_TRACE_HPP_INCLUDED
-

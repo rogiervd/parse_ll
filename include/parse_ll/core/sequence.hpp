@@ -21,9 +21,9 @@ Define a sequence parser, which parses two inputs after one another
 #ifndef PARSE_LL_SEQUENCE_HPP_INCLUDED
 #define PARSE_LL_SEQUENCE_HPP_INCLUDED
 
-#include "fwd.hpp"
 #include "core.hpp"
 #include "error.hpp"
+#include "fwd.hpp"
 
 // For std::tuple
 #include <utility>
@@ -34,25 +34,30 @@ Define a sequence parser, which parses two inputs after one another
 namespace parse_ll {
 
 template <bool expect, class Parser1, class Parser2> struct sequence_parser
-: parser_base <sequence_parser <expect, Parser1, Parser2> >
+: parser_base<sequence_parser<expect, Parser1, Parser2>>
 {
     Parser1 parser_1;
     Parser2 parser_2;
+
 public:
-    sequence_parser (Parser1 const & parser_1, Parser2 const & parser_2)
-    : parser_1 (parser_1), parser_2 (parser_2) {}
+    sequence_parser(Parser1 const & parser_1, Parser2 const & parser_2)
+    : parser_1(parser_1), parser_2(parser_2)
+    {}
 };
 
 struct sequence_parser_tag;
 template <bool expect, class Parser1, class Parser2>
-    struct decayed_parser_tag <sequence_parser <expect, Parser1, Parser2>>
-{ typedef sequence_parser_tag type; };
+struct decayed_parser_tag<sequence_parser<expect, Parser1, Parser2>>
+{
+    typedef sequence_parser_tag type;
+};
 
-template <bool expect, class Policy, class Parser1, class Parser2, class Input,
-    class Output1 = typename detail::parser_output <Policy, Parser1, Input
-        >::type,
-    class Output2 = typename detail::parser_output <Policy, Parser2, Input
-        >::type>
+template <
+    bool expect, class Policy, class Parser1, class Parser2, class Input,
+    class Output1 =
+        typename detail::parser_output<Policy, Parser1, Input>::type,
+    class Output2 =
+        typename detail::parser_output<Policy, Parser2, Input>::type>
 struct sequence_outcome;
 
 /**
@@ -108,173 +113,193 @@ However, in the recursive version of this, this makes operation::output very
 complicated.
 Postpone until the sequential version.
 */
-template <bool expect, class Policy, class Parser1, class Parser2, class Input,
+template <
+    bool expect, class Policy, class Parser1, class Parser2, class Input,
     class Output1, class Output2>
 struct sequence_outcome
 {
-    typedef typename detail::parser_outcome <Policy, Parser1, Input>::type
+    typedef typename detail::parser_outcome<Policy, Parser1, Input>::type
         outcome_1_type;
-    typedef typename detail::parser_outcome <Policy, Parser2, Input>::type
+    typedef typename detail::parser_outcome<Policy, Parser2, Input>::type
         outcome_2_type;
     outcome_1_type outcome_1;
     // If success (outcome_1):
-    boost::optional <outcome_2_type> outcome_2;
+    boost::optional<outcome_2_type> outcome_2;
     // If !success (outcome_1):
-    boost::optional <Input> input;
+    boost::optional<Input> input;
+
 public:
-    sequence_outcome (Policy const & policy, Parser1 const & parser_1,
+    sequence_outcome(
+        Policy const & policy, Parser1 const & parser_1,
         Parser2 const & parser_2, Input const & input)
-    : outcome_1 (parse (policy, parser_1, input)) {
-        if (success (outcome_1)) {
+    : outcome_1(parse(policy, parser_1, input))
+    {
+        if (success(outcome_1)) {
             // The in-place factory makes sure that operator= is not needed.
-            outcome_2 = boost::in_place <outcome_2_type, outcome_2_type> (
-                parse (policy, parser_2,
-                    skip_over (policy.skip_parser(), rest (outcome_1))));
+            outcome_2 = boost::in_place<outcome_2_type, outcome_2_type>(parse(
+                policy, parser_2,
+                skip_over(policy.skip_parser(), rest(outcome_1))));
             // For an expect parser, outcome_2 must succeed if outcome_1 does.
-            if (expect && !success (*outcome_2))
+            if (expect && !success(*outcome_2)) {
                 // Otherwise, construction fails.
-                throw error() << error_at <Input> (rest (outcome_1));
-        } else
+                throw error() << error_at<Input>(rest(outcome_1));
+            }
+        } else {
             this->input = input;
+        }
     }
 };
 
 namespace operation {
-    template <> struct parse <sequence_parser_tag> {
-        template <class Policy,
-                bool expect, class Parser1, class Parser2, class Input>
-        sequence_outcome <expect, Policy, Parser1, Parser2, Input>
-            operator() (Policy const & policy,
-                sequence_parser <expect, Parser1, Parser2>
-                const & parser, Input const & input) const
+    template <> struct parse<sequence_parser_tag>
+    {
+        template <
+            class Policy, bool expect, class Parser1, class Parser2,
+            class Input>
+        sequence_outcome<expect, Policy, Parser1, Parser2, Input> operator()(
+            Policy const & policy,
+            sequence_parser<expect, Parser1, Parser2> const & parser,
+            Input const & input) const
         {
-            return sequence_outcome <expect, Policy, Parser1, Parser2, Input> (
+            return sequence_outcome<expect, Policy, Parser1, Parser2, Input>(
                 policy, parser.parser_1, parser.parser_2, input);
         }
     };
 
-    template <> struct describe <sequence_parser_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "sequence"; }
+    template <> struct describe<sequence_parser_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "sequence";
+        }
     };
 
-    template <bool except, class Policy,
-            class Parser1, class Parser2, class Input>
-        struct success <
-            sequence_outcome <except, Policy, Parser1, Parser2, Input>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input>
+    struct success<sequence_outcome<except, Policy, Parser1, Parser2, Input>>
     {
-        bool operator() (
-            sequence_outcome <false, Policy, Parser1, Parser2, Input>
-            const & outcome) const
+        bool operator()(
+            sequence_outcome<false, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
-            return ::parse_ll::success (outcome.outcome_1)
-                && ::parse_ll::success (*outcome.outcome_2);
+            return ::parse_ll::success(outcome.outcome_1)
+                && ::parse_ll::success(*outcome.outcome_2);
         }
-        bool operator() (sequence_outcome <true, Policy, Parser1, Parser2, Input
-            > const & outcome) const
+        bool operator()(
+            sequence_outcome<true, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
             // If the first parser succeeds, the next must do too.
-            return ::parse_ll::success (outcome.outcome_1);
+            return ::parse_ll::success(outcome.outcome_1);
         }
     };
 
     // something1 + someting2 -> tuple <something1, something2>
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input, class Output1, class Output2>
-        struct output <sequence_outcome <except, Policy, Parser1, Parser2,
-            Input, Output1, Output2>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input,
+        class Output1, class Output2>
+    struct output<sequence_outcome<
+        except, Policy, Parser1, Parser2, Input, Output1, Output2>>
     {
-        std::tuple <Output1, Output2>
-            operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const
+        std::tuple<Output1, Output2> operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
-            return std::tuple <Output1, Output2> (
-                ::parse_ll::output (outcome.outcome_1),
-                ::parse_ll::output (*outcome.outcome_2));
+            return std::tuple<Output1, Output2>(
+                ::parse_ll::output(outcome.outcome_1),
+                ::parse_ll::output(*outcome.outcome_2));
         }
     };
     //*** Special case type 1: void
     // void + void -> void
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input>
-        struct output <sequence_outcome <
-            except, Policy, Parser1, Parser2, Input, void, void>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input>
+    struct output<
+        sequence_outcome<except, Policy, Parser1, Parser2, Input, void, void>>
     {
         // Never executed because it is short-circuited globally.
-        void operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const;
+        void operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const;
     };
     // something + void -> tuple <something>
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input, class Output1>
-        struct output <sequence_outcome <
-            except, Policy, Parser1, Parser2, Input, Output1, void>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input,
+        class Output1>
+    struct output<sequence_outcome<
+        except, Policy, Parser1, Parser2, Input, Output1, void>>
     {
-        std::tuple <Output1>
-            operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const
+        std::tuple<Output1> operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
-            return std::tuple <Output1> (
-                ::parse_ll::output (outcome.outcome_1));
+            return std::tuple<Output1>(::parse_ll::output(outcome.outcome_1));
         }
     };
     // void + something -> tuple <something>
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input, class Output2>
-        struct output <sequence_outcome <
-            except, Policy, Parser1, Parser2, Input,void, Output2>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input,
+        class Output2>
+    struct output<sequence_outcome<
+        except, Policy, Parser1, Parser2, Input, void, Output2>>
     {
-        std::tuple <Output2>
-            operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const
+        std::tuple<Output2> operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
-            return std::tuple <Output2> (
-                ::parse_ll::output (*outcome.outcome_2));
+            return std::tuple<Output2>(::parse_ll::output(*outcome.outcome_2));
         }
     };
     //*** Special case type 2: Parser1 is a sequence_parser.
     // tuple <something1...> (from sequence_parser) + something2
     // -> tuple <something1..., something2>
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input, class ... Output1, class Output2>
-        struct output <sequence_outcome <except, Policy, Parser1, Parser2,
-                Input, std::tuple <Output1...>, Output2>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input,
+        class... Output1, class Output2>
+    struct output<sequence_outcome<
+        except, Policy, Parser1, Parser2, Input, std::tuple<Output1...>,
+        Output2>>
     {
-        std::tuple <Output1 ..., Output2>
-            operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const
+        std::tuple<Output1..., Output2> operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
         {
-            return std::tuple_cat (::parse_ll::output (outcome.outcome_1),
-                std::tuple <Output2> (::parse_ll::output (*outcome.outcome_2)));
+            return std::tuple_cat(
+                ::parse_ll::output(outcome.outcome_1),
+                std::tuple<Output2>(::parse_ll::output(*outcome.outcome_2)));
         }
     };
     // tuple <something...> (from sequence_parser) + void
     // -> tuple <something...>
-    template <bool except, class Policy, bool sub_except, class Parser11,
-            class Parser12, class Parser2, class Input, class ... Output1>
-        struct output <sequence_outcome <except, Policy,
-                sequence_parser <sub_except, Parser11, Parser12>,
-                Parser2, Input, std::tuple <Output1...>, void>>
+    template <
+        bool except, class Policy, bool sub_except, class Parser11,
+        class Parser12, class Parser2, class Input, class... Output1>
+    struct output<sequence_outcome<
+        except, Policy, sequence_parser<sub_except, Parser11, Parser12>,
+        Parser2, Input, std::tuple<Output1...>, void>>
     {
-        template <class Parser1>
-        std::tuple <Output1...>
-            operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-                Input> const & outcome) const
-        { return ::parse_ll::output (outcome.outcome_1); }
+        template <class Parser1> std::tuple<Output1...> operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
+        {
+            return ::parse_ll::output(outcome.outcome_1);
+        }
     };
 
-    template <bool except, class Policy, class Parser1, class Parser2,
-            class Input>
-        struct rest <sequence_outcome <except, Policy, Parser1, Parser2, Input>>
+    template <
+        bool except, class Policy, class Parser1, class Parser2, class Input>
+    struct rest<sequence_outcome<except, Policy, Parser1, Parser2, Input>>
     {
-        Input operator() (sequence_outcome <except, Policy, Parser1, Parser2,
-            Input> const & outcome) const
-        { return ::parse_ll::rest (*outcome.outcome_2); }
+        Input operator()(
+            sequence_outcome<except, Policy, Parser1, Parser2, Input> const &
+                outcome) const
+        {
+            return ::parse_ll::rest(*outcome.outcome_2);
+        }
     };
 
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_SEQUENCE_HPP_INCLUDED
-

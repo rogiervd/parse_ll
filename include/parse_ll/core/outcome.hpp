@@ -22,9 +22,8 @@ Define standard outcome types.
 #define PARSE_LL_CORE_OUTCOME_HPP_INCLUDED
 
 #include "outcome/core.hpp"
+#include "outcome/explicit.hpp"
 #include "outcome/failed.hpp"
 #include "outcome/successful.hpp"
-#include "outcome/explicit.hpp"
 
-#endif // PARSE_LL_CORE_OUTCOME_HPP_INCLUDED
-
+#endif  // PARSE_LL_CORE_OUTCOME_HPP_INCLUDED

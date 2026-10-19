@@ -32,23 +32,24 @@ This matches decimal digits.
 It may be interesting to consider how to generalise this (and int_, and float_)
 to other bases.
 */
-struct match_digit {
-    template <class Char>
-    bool operator() (Char const & c) const {
+struct match_digit
+{
+    template <class Char> bool operator()(Char const & c) const
+    {
         return '0' <= c && c <= '9';
     }
 };
 
-struct convert_digit {
-    template <class Char>
-    int operator() (Char const & c) const {
-        return int (c - '0');
+struct convert_digit
+{
+    template <class Char> int operator()(Char const & c) const
+    {
+        return int(c - '0');
     }
 };
 
-static const auto digit = char_parser <match_digit>() [convert_digit()];
+static auto const digit = char_parser<match_digit>()[convert_digit()];
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_DIGIT_HPP_INCLUDED
-

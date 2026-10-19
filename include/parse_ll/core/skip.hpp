@@ -30,16 +30,16 @@ and skip.
 
 namespace parse_ll {
 
-template <class SkipParser, bool pad>
-    class skip_inside_directive;
-template <class SubParser, class SkipParser, bool pad>
-    struct skip_inside;
+template <class SkipParser, bool pad> class skip_inside_directive;
+template <class SubParser, class SkipParser, bool pad> struct skip_inside;
 
 struct skip_inside_tag;
 
 template <class SubParser, class SkipParser, bool pad>
-    struct decayed_parser_tag <skip_inside <SubParser, SkipParser, pad>>
-{ typedef skip_inside_tag type; };
+struct decayed_parser_tag<skip_inside<SubParser, SkipParser, pad>>
+{
+    typedef skip_inside_tag type;
+};
 
 /**
 Create a parser that uses a specific skip parser inside the sub-parser.
@@ -50,15 +50,15 @@ The expression skip (whitespace) constructs a skip_inside_directive.
 Calling its operator[] produces a skip_inside.
 skip_inside then changes the parse policy for its sub-parser.
 */
-template <class SkipParser> auto skip (SkipParser const & skip_parser)
-    RETURNS (skip_inside_directive <SkipParser, false> (skip_parser));
+template <class SkipParser> auto skip(SkipParser const & skip_parser)
+    RETURNS(skip_inside_directive<SkipParser, false>(skip_parser));
 /**
 Create a parser that uses a specific skip parser before, inside, and after the
 sub-parser.
 This is used as, for example, skip_pad (whitespace) [sub_parser].
 */
-template <class SkipParser> auto skip_pad (SkipParser const & skip_parser)
-    RETURNS (skip_inside_directive <SkipParser, true> (skip_parser));
+template <class SkipParser> auto skip_pad(SkipParser const & skip_parser)
+    RETURNS(skip_inside_directive<SkipParser, true>(skip_parser));
 
 namespace parse_policy {
 
@@ -72,28 +72,35 @@ namespace parse_policy {
     : public OriginalPolicy
     {
         SkipParser skip_parser_;
+
     public:
-        skip_policy (SkipParser const & skip_parser_,
+        skip_policy(
+            SkipParser const & skip_parser_,
             OriginalPolicy const & original_policy)
-        : OriginalPolicy (original_policy), skip_parser_ (skip_parser_) {}
+        : OriginalPolicy(original_policy), skip_parser_(skip_parser_)
+        {}
 
         SkipParser const & skip_parser() const { return skip_parser_; }
 
         OriginalPolicy const & original_policy() const { return *this; }
     };
 
-} // namespace parse_policy
+}  // namespace parse_policy
 
-template <class SkipParser, bool pad> class skip_inside_directive {
+template <class SkipParser, bool pad> class skip_inside_directive
+{
     SkipParser skip_parser;
-public:
-    explicit skip_inside_directive (SkipParser const & skip_parser)
-    : skip_parser (skip_parser) {}
 
-    template <class SubParser> skip_inside <SubParser, SkipParser, pad>
-        operator[] (SubParser const & sub_parser) const {
-        return skip_inside <SubParser, SkipParser, pad> (
-            sub_parser, skip_parser);
+public:
+    explicit skip_inside_directive(SkipParser const & skip_parser)
+    : skip_parser(skip_parser)
+    {}
+
+    template <class SubParser>
+    skip_inside<SubParser, SkipParser, pad> operator[](
+        SubParser const & sub_parser) const
+    {
+        return skip_inside<SubParser, SkipParser, pad>(sub_parser, skip_parser);
     }
 };
 
@@ -102,13 +109,15 @@ Parser that replaces the skip parser active outside this parser, by skip_parser.
 Normally produced by an expression like skip [skip_parser] (sub_parser).
 */
 template <class SubParser, class SkipParser, bool pad> struct skip_inside
-: parser_base <skip_inside <SubParser, SkipParser, pad>>
+: parser_base<skip_inside<SubParser, SkipParser, pad>>
 {
     SubParser sub_parser;
     SkipParser skip_parser;
+
 public:
-    skip_inside (SubParser const & sub_parser, SkipParser const & skip_parser)
-    : sub_parser (sub_parser), skip_parser (skip_parser) {}
+    skip_inside(SubParser const & sub_parser, SkipParser const & skip_parser)
+    : sub_parser(sub_parser), skip_parser(skip_parser)
+    {}
 };
 
 /**
@@ -117,17 +126,20 @@ before sub_parser (during the construction of this) and after sub_parser
 (by rest()).
 */
 template <class Policy, class SubParser, class Input>
-    struct skip_inside_pad_outcome
+struct skip_inside_pad_outcome
 {
     Policy policy;
-    typedef typename detail::parser_outcome <Policy, SubParser, Input>::type
+    typedef typename detail::parser_outcome<Policy, SubParser, Input>::type
         outcome_type;
     outcome_type outcome;
+
 public:
-    skip_inside_pad_outcome (Policy const & policy,
-        SubParser const & sub_parser, Input const & input)
-    : policy (policy), outcome (
-        parse (policy, sub_parser, skip_over (policy.skip_parser(), input))) {}
+    skip_inside_pad_outcome(
+        Policy const & policy, SubParser const & sub_parser,
+        Input const & input)
+    : policy(policy),
+      outcome(parse(policy, sub_parser, skip_over(policy.skip_parser(), input)))
+    {}
 };
 
 namespace operation {
@@ -137,74 +149,87 @@ namespace operation {
     skip_pad() wraps the outcome, whereas skip() can get away with just
     calling a newly constructed skip_policy instead of original_parser.
     */
-    template <> struct parse <skip_inside_tag> {
+    template <> struct parse<skip_inside_tag>
+    {
         // No padding.
-        template <class OriginalPolicy,
-            class SubParser, class SkipParser, class Input>
-        auto operator() (
+        template <
+            class OriginalPolicy, class SubParser, class SkipParser,
+            class Input>
+        auto operator()(
             OriginalPolicy const & original_policy,
-            skip_inside <SubParser, SkipParser, false> const & parser,
+            skip_inside<SubParser, SkipParser, false> const & parser,
             Input const & input) const
             // Produce new policy function that wraps original_policy.
-        RETURNS (parse_ll::parse (
-            parse_policy::skip_policy <SkipParser, OriginalPolicy> (
-                parser.skip_parser, original_policy),
-            parser.sub_parser, input));
+            RETURNS(
+                parse_ll::parse(
+                    parse_policy::skip_policy<SkipParser, OriginalPolicy>(
+                        parser.skip_parser, original_policy),
+                    parser.sub_parser, input));
 
         // With padding: use skip_inside_pad_outcome.
-        template <class OriginalPolicy,
-            class SubParser, class SkipParser, class Input>
-        auto operator() (OriginalPolicy const & original_policy,
-            skip_inside <SubParser, SkipParser, true> const &
-                parser, Input const & input) const
-        RETURNS (skip_inside_pad_outcome <
-                parse_policy::skip_policy <SkipParser, OriginalPolicy>,
-                SubParser, Input> (
-            parse_policy::skip_policy <SkipParser, OriginalPolicy> (
-                parser.skip_parser, original_policy),
-            parser.sub_parser, input));
+        template <
+            class OriginalPolicy, class SubParser, class SkipParser,
+            class Input>
+        auto operator()(
+            OriginalPolicy const & original_policy,
+            skip_inside<SubParser, SkipParser, true> const & parser,
+            Input const & input) const
+            RETURNS(
+                skip_inside_pad_outcome<
+                    parse_policy::skip_policy<SkipParser, OriginalPolicy>,
+                    SubParser, Input>(
+                    parse_policy::skip_policy<SkipParser, OriginalPolicy>(
+                        parser.skip_parser, original_policy),
+                    parser.sub_parser, input));
     };
 
-    template <> struct describe <skip_inside_tag> {
-        template <class Parser> const char * operator() (Parser const &) const
-        { return "(change skip parser used inside)"; }
+    template <> struct describe<skip_inside_tag>
+    {
+        template <class Parser> char const * operator()(Parser const &) const
+        {
+            return "(change skip parser used inside)";
+        }
     };
 
     // Handling skip_inside_pad_outcome:
     // success() propagates from the internal parser.
     template <class Policy, class SubParser, class Input>
-        struct success <skip_inside_pad_outcome <Policy, SubParser, Input>>
+    struct success<skip_inside_pad_outcome<Policy, SubParser, Input>>
     {
-        bool operator() (skip_inside_pad_outcome <Policy, SubParser, Input>
-            const & outcome) const
-        { return ::parse_ll::success (outcome.outcome); }
+        bool operator()(
+            skip_inside_pad_outcome<Policy, SubParser, Input> const & outcome)
+            const
+        {
+            return ::parse_ll::success(outcome.outcome);
+        }
     };
 
     // output() propagates from the internal parser.
     template <class Policy, class SubParser, class Input>
-        struct output <skip_inside_pad_outcome <Policy, SubParser, Input>>
+    struct output<skip_inside_pad_outcome<Policy, SubParser, Input>>
     {
-        auto operator() (skip_inside_pad_outcome <Policy, SubParser, Input>
-            const & outcome) const
-        RETURNS (::parse_ll::output (outcome.outcome));
+        auto operator()(
+            skip_inside_pad_outcome<Policy, SubParser, Input> const & outcome)
+            const RETURNS(::parse_ll::output(outcome.outcome));
     };
 
     // rest() takes rest (outcome.outcome) and applies the skip parser to it
     // again.
     template <class Policy, class SubParser, class Input>
-        struct rest <skip_inside_pad_outcome <Policy, SubParser, Input>>
+    struct rest<skip_inside_pad_outcome<Policy, SubParser, Input>>
     {
-        Input operator() (skip_inside_pad_outcome <Policy, SubParser, Input>
-            const & outcome) const
+        Input operator()(
+            skip_inside_pad_outcome<Policy, SubParser, Input> const & outcome)
+            const
         {
-            return parse_ll::skip_over (outcome.policy.skip_parser(),
-                ::parse_ll::rest (outcome.outcome));
+            return parse_ll::skip_over(
+                outcome.policy.skip_parser(),
+                ::parse_ll::rest(outcome.outcome));
         }
     };
 
-} // namespace operation
+}  // namespace operation
 
-} // namespace parse_ll
+}  // namespace parse_ll
 
 #endif  // PARSE_LL_BASE_SKIP_HPP_INCLUDED
-
