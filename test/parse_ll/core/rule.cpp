@@ -26,7 +26,7 @@ Test rule.
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std/string.hpp"
 
 #include "parse_ll/core/char.hpp"
 #include "parse_ll/core/nothing.hpp"

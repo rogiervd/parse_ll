@@ -26,7 +26,7 @@ Test end_parser.
 #include <string>
 
 #include "range/core.hpp"
-#include "range/std/container.hpp"
+#include "range/std/string.hpp"
 
 #include <type_traits>
 
