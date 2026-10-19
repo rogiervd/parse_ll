@@ -94,7 +94,8 @@ public:
     }
 
     ~expect_observer() {
-        BOOST_CHECK ((!expected_list.unique()) || expected_list->empty());
+        BOOST_CHECK (
+            (expected_list.use_count() != 1) || expected_list->empty());
     }
 
     template <class Parser>
@@ -128,7 +129,7 @@ public:
             "Expected " << typeid (expected).name() << " but got "
             << got.type().name());
         if (expected) {
-            BOOST_MESSAGE ("Found " << typeid (expected).name());
+            BOOST_TEST_MESSAGE ("Found " << typeid (expected).name());
             std::cerr << std::flush;
             BOOST_CHECK_EQUAL (depth, expected->depth);
             BOOST_CHECK_EQUAL (input.line(), expected->line);
@@ -149,7 +150,7 @@ public:
             "Expected " << typeid (expected).name() << " but got "
             << got.type().name());
         if (expected) {
-            BOOST_MESSAGE ("Found " << typeid (expected).name());
+            BOOST_TEST_MESSAGE ("Found " << typeid (expected).name());
             BOOST_CHECK_EQUAL (depth, expected->depth);
             BOOST_CHECK_EQUAL (input.line(), expected->start_line);
             BOOST_CHECK_EQUAL (input.column(), expected->start_column);
@@ -171,7 +172,7 @@ public:
             "Expected " << typeid (expected).name() << " but got "
             << got.type().name());
         if (expected) {
-            BOOST_MESSAGE ("Found " << typeid (expected).name());
+            BOOST_TEST_MESSAGE ("Found " << typeid (expected).name());
             std::cerr << std::flush;
             BOOST_CHECK_EQUAL (depth, expected->depth);
             BOOST_CHECK_EQUAL (input.line(), expected->line);
