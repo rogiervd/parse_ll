@@ -68,22 +68,22 @@ BOOST_AUTO_TEST_CASE (test_trace) {
 struct expect_observer {
     template <class Parser> struct expect_start_parse {
         int depth;
-        int line, column;
-        expect_start_parse (int depth, int line, int column)
+        std::size_t line, column;
+        expect_start_parse (int depth, std::size_t line, std::size_t column)
         : depth (depth), line (line), column (column) {}
     };
     template <class Parser> struct expect_successful_parse {
         int depth;
-        int start_line, start_column, finish_line, finish_column;
-        expect_successful_parse (int depth, int start_line, int start_column,
-            int finish_line, int finish_column)
+        std::size_t start_line, start_column, finish_line, finish_column;
+        expect_successful_parse (int depth, std::size_t start_line, std::size_t start_column,
+            std::size_t finish_line, std::size_t finish_column)
         : depth (depth), start_line (start_line), start_column (start_column),
             finish_line (finish_line), finish_column (finish_column) {}
     };
     template <class Parser> struct expect_failed_parse {
         int depth;
-        int line, column;
-        expect_failed_parse (int depth, int line, int column)
+        std::size_t line, column;
+        expect_failed_parse (int depth, std::size_t line, std::size_t column)
         : depth (depth), line (line), column (column) {}
     };
 
@@ -98,20 +98,20 @@ public:
     }
 
     template <class Parser>
-    void expect_start (int depth, Parser const &, int line, int column) {
+    void expect_start (int depth, Parser const &, std::size_t line, std::size_t column) {
         expected_list->push_back (
             expect_start_parse <Parser> (depth, line, column));
     }
     template <class Parser>
     void expect_success (int depth, Parser const &,
-        int start_line, int start_column, int finish_line, int finish_column)
+        std::size_t start_line, std::size_t start_column, std::size_t finish_line, std::size_t finish_column)
     {
         expected_list->push_back (
             expect_successful_parse <Parser> (depth,
                 start_line, start_column, finish_line, finish_column));
     }
     template <class Parser>
-    void expect_no_success (int depth, Parser const &, int line, int column) {
+    void expect_no_success (int depth, Parser const &, std::size_t line, std::size_t column) {
         expected_list->push_back (
             expect_failed_parse <Parser> (depth, line, column));
     }
