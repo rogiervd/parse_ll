@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE (test_expect_sequence) {
             try {
                 auto result = parse (parser, r);
                 BOOST_CHECK (success (result));
-                std::get <2> (output (result));
+                (void) std::get <2> (output (result));
                 // Should have thrown!
                 BOOST_CHECK (false);
             } catch (parse_ll::error & e) {
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE (test_expect_sequence) {
             try {
                 auto result = parse (parser, r);
                 BOOST_CHECK (success (result));
-                std::get <2> (output (result));
+                (void) std::get <2> (output (result));
                 // Should have thrown!
                 BOOST_CHECK (false);
             } catch (parse_ll::error & e) {
