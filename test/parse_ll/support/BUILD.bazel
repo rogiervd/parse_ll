@@ -4,7 +4,10 @@ cc_test(
     name = "file_range",
     size = "small",
     srcs = ["file_range.cpp"],
-    args = ["--", "$(location //test/parse_ll/example:example_file.txt)"],
+    args = [
+        "--",
+        "$(location //test/parse_ll/example:example_file.txt)",
+    ],
     data = ["//test/parse_ll/example:example_file.txt"],
     deps = [
         "//:parse_ll",
@@ -16,7 +19,10 @@ cc_test(
     name = "text_location_range",
     size = "small",
     srcs = ["text_location_range.cpp"],
-    args = ["--", "$(location //test/parse_ll/example:location_example.txt)"],
+    args = [
+        "--",
+        "$(location //test/parse_ll/example:location_example.txt)",
+    ],
     data = ["//test/parse_ll/example:location_example.txt"],
     deps = [
         "//:parse_ll",
