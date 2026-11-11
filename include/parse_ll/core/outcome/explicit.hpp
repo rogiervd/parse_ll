@@ -12,15 +12,6 @@ An outcome type that contains the output and the remaining input.
 #include <type_traits>
 #include <utility>
 
-// GCC spurious warning from boost::optional with -O1 or higher.
-// http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47679
-#if BOOST_WORKAROUND(__GNUC__, == 4) && (__GNUC_MINOR__ == 6)
-// Retain -Wuninitialized in debug mode.
-#    ifdef __OPTIMIZE__
-#        pragma GCC diagnostic ignored "-Wuninitialized"
-#    endif
-#endif
-
 #include <boost/optional.hpp>
 
 #include "utility/returns.hpp"
