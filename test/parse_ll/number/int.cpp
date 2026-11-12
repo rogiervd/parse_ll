@@ -11,12 +11,11 @@ Test int parser.
 
 #include "parse_ll/number/int.hpp"
 
+#include <cmath>
 #include <string>
 
 #include "range/core.hpp"
 #include "range/std/string.hpp"
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include "../helper/fuzz_parser.hpp"
 #include "parse_ll/core/literal.hpp"
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE(test_int)
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
             BOOST_CHECK_EQUAL(output(result), -0);
-            BOOST_CHECK(boost::math::signbit(output(result)));
+            BOOST_CHECK(std::signbit(output(result)));
             BOOST_CHECK(empty(rest(result)));
         }
     }
