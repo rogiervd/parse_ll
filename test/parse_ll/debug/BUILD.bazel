@@ -10,7 +10,6 @@ cc_test(
     srcs = ["trace.cpp"],
     deps = [
         "//:parse_ll",
-        "@boost.any",
         "@boost.test//:unit_test_main",
     ],
 )
