@@ -352,7 +352,7 @@ BOOST_AUTO_TEST_CASE(test_sequence_skipping)
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
             auto o = output(result);
-            static_assert(std::tuple_size<decltype(o)>::value == 2, "");
+            static_assert(std::tuple_size<decltype(o)>::value == 2);
             BOOST_CHECK(empty(rest(result)));
         }
     }
@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE(test_sequence_skipping)
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
             static_assert(
-                std::tuple_size<decltype(output(result))>::value == 2, "");
+                std::tuple_size<decltype(output(result))>::value == 2);
             BOOST_CHECK_EQUAL(first(rest(result)), ' ');
         }
     }

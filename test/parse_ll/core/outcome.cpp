@@ -97,8 +97,7 @@ BOOST_AUTO_TEST_CASE(test_outcome)
         // successful with void.
         successful<void, Range> successful_void(r);
         BOOST_CHECK(success(successful_void));
-        static_assert(
-            std::is_same<decltype(output(successful_void)), void>::value, "");
+        static_assert(std::is_same_v<decltype(output(successful_void)), void>);
         BOOST_CHECK_EQUAL(rest(successful_void).j, 78);
 
         /**** Copy into explicit_outcome ****/
@@ -166,8 +165,7 @@ BOOST_AUTO_TEST_CASE(test_outcome)
         explicit_outcome<void, Range> successful_void =
             explicit_outcome<void, Range>(r);
         BOOST_CHECK(success(successful_void));
-        static_assert(
-            std::is_same<decltype(output(successful_void)), void>::value, "");
+        static_assert(std::is_same_v<decltype(output(successful_void)), void>);
         BOOST_CHECK_EQUAL(rest(successful_void).j, 89);
 
         /**** Copy into failed ****/

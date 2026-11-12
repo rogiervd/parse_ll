@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(test_literal)
             auto result = parse(parser, r);
             BOOST_CHECK(!success(result));
             static_assert(
-                std::is_same<decltype(output(result)), void>::value,
+                std::is_same_v<decltype(output(result)), void>,
                 "lit should not have a void output");
         }
         {

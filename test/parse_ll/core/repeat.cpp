@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(test_repeat)
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
             static_assert(
-                std::is_same<decltype(output(result)), void>::value,
+                std::is_same_v<decltype(output(result)), void>,
                 "Repeating a parser with void output should have void output");
             BOOST_CHECK(empty(rest(result)));
         }

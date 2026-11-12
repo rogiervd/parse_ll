@@ -223,7 +223,7 @@ namespace operation {
         {
             // Generate an error here.
             static_assert(
-                std::is_same<RuleInput, ActualInput>::value,
+                std::is_same_v<RuleInput, ActualInput>,
                 "The rule parser can only parse with a fixed Input type");
             detail::opaque_policy<RuleInput, SkipParser> inside_policy(
                 outside_policy);
