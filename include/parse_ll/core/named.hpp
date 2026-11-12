@@ -12,7 +12,6 @@ Define a parser wrapper that makes compiler errors more meaningful.
 #include "utility/returns.hpp"
 
 #include <type_traits>
-#include <boost/utility/enable_if.hpp>
 #include "core.hpp"
 
 namespace parse_ll {
@@ -31,8 +30,7 @@ struct named_parser {};
 
 struct named_parser_tag;
 template <class Parser> struct decayed_parser_tag<
-    Parser,
-    typename boost::enable_if<std::is_base_of<named_parser, Parser>>::type>
+    Parser, std::enable_if_t<std::is_base_of_v<named_parser, Parser>>>
 {
     typedef named_parser_tag type;
 };
