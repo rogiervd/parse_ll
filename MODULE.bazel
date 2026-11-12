@@ -31,7 +31,6 @@ bazel_dep(name = "boost.variant", version = "1.90.0.bcr.1")
 
 # Only used by the tests.
 bazel_dep(name = "boost.test", version = "1.90.0.bcr.1", dev_dependency = True)
-bazel_dep(name = "boost.any", version = "1.90.0.bcr.1", dev_dependency = True)
 bazel_dep(name = "boost.math", version = "1.90.0.bcr.1", dev_dependency = True)
 
 bazel_dep(name = "nanobind_bazel", version = "2.12.0")

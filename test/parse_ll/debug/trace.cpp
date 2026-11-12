@@ -12,13 +12,12 @@ Test trace.
 #include "parse_ll/debug/ostream_observer.hpp"
 #include "parse_ll/debug/trace.hpp"
 
+#include <any>
 #include <iostream>
 #include <list>
 #include <ostream>
 #include <string>
 #include <typeinfo>
-
-#include <boost/any.hpp>
 
 #include "range/core.hpp"
 #include "range/std/string.hpp"
@@ -84,12 +83,12 @@ struct expect_observer
         {}
     };
 
-    std::shared_ptr<std::list<boost::any>> expected_list;
+    std::shared_ptr<std::list<std::any>> expected_list;
 
 public:
     expect_observer()
     {
-        expected_list = std::make_shared<std::list<boost::any>>();
+        expected_list = std::make_shared<std::list<std::any>>();
     }
 
     ~expect_observer()
@@ -124,8 +123,8 @@ public:
     {
         typedef expect_start_parse<Parser> expected_type;
         BOOST_REQUIRE(!expected_list->empty());
-        boost::any got = expected_list->front();
-        expected_type * expected = boost::any_cast<expected_type>(&got);
+        std::any got = expected_list->front();
+        expected_type * expected = std::any_cast<expected_type>(&got);
         BOOST_CHECK_MESSAGE(
             bool(expected),
             "Expected " << typeid(expected).name() << " but got "
@@ -146,8 +145,8 @@ public:
     {
         typedef expect_successful_parse<Parser> expected_type;
         BOOST_REQUIRE(!expected_list->empty());
-        boost::any got = expected_list->front();
-        expected_type * expected = boost::any_cast<expected_type>(&got);
+        std::any got = expected_list->front();
+        expected_type * expected = std::any_cast<expected_type>(&got);
         BOOST_CHECK_MESSAGE(
             bool(expected),
             "Expected " << typeid(expected).name() << " but got "
@@ -168,8 +167,8 @@ public:
     {
         typedef expect_failed_parse<Parser> expected_type;
         BOOST_REQUIRE(!expected_list->empty());
-        boost::any got = expected_list->front();
-        expected_type * expected = boost::any_cast<expected_type>(&got);
+        std::any got = expected_list->front();
+        expected_type * expected = std::any_cast<expected_type>(&got);
         BOOST_CHECK_MESSAGE(
             bool(expected),
             "Expected " << typeid(expected).name() << " but got "
