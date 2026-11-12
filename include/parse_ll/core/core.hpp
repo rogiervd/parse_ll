@@ -14,7 +14,6 @@ Base classes for parser.
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/not.hpp>
-#include <boost/utility/enable_if.hpp>
 
 #include "utility/returns.hpp"
 
@@ -190,7 +189,7 @@ namespace apply {
         template <class Apply, class Policy, class Parser, class Input>
         struct arrange_parse_parameters<
             Apply, meta::vector<Policy, Parser, Input>,
-            typename boost::enable_if<range::is_view<Input>>::type>
+            std::enable_if_t<range::is_view<Input>::value>>
         {
             static_assert(
                 is_parser<Parser>::value,
@@ -206,7 +205,7 @@ namespace apply {
         template <class Apply, class Policy, class Parser, class Input>
         struct arrange_parse_parameters<
             Apply, meta::vector<Policy, Parser, Input>,
-            typename boost::disable_if<range::is_view<Input>>::type>
+            std::enable_if_t<!range::is_view<Input>::value>>
         {
             typedef
                 typename range::result_of<range::callable::view(Input)>::type
