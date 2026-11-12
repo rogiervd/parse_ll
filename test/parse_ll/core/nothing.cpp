@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_nothing)
             // Should be successful, but still not use up any input.
             BOOST_CHECK(parse_ll::success(result));
             static_assert(
-                std::is_same<decltype(parse_ll::output(result)), void>::value,
+                std::is_same_v<decltype(parse_ll::output(result)), void>,
                 "Should output void");
             BOOST_CHECK_EQUAL(first(parse_ll::rest(result)), 'a');
         }

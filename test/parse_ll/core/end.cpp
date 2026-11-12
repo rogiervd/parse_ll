@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(test_end)
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
             static_assert(
-                std::is_same<decltype(output(result)), void>::value,
+                std::is_same_v<decltype(output(result)), void>,
                 "Output should be void");
             BOOST_CHECK(empty(rest(result)));
         }
