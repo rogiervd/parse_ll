@@ -10,9 +10,9 @@ Define an optional parser, which parses something zero or one time.
 #define PARSE_LL_BASE_OPTIONAL_HPP_INCLUDED
 
 #include <cassert>
+#include <optional>
 #include <type_traits>
 #include <boost/mpl/if.hpp>
-#include <boost/optional.hpp>
 
 #include "core.hpp"
 #include "fwd.hpp"
@@ -21,7 +21,9 @@ namespace parse_ll {
 
 /**
 Parser that wraps a parser so that it always succeeds, and outputs a
-boost::optional<>.
+std::optional<>.
+std::optional cannot hold references, so if the sub-parser outputs a reference,
+the std::optional holds a copy of the value.
 If the sub-parser had void as its output, this parser will also output a void.
 This is consistent with the objective of translating the input to an output
 type as opposed to returning some information about whether a parser matched
@@ -72,7 +74,8 @@ namespace operation {
                 sub_output_type;
             typedef typename boost::mpl::if_<
                 std::is_same<sub_output_type, void>, void,
-                boost::optional<sub_output_type>>::type output_type;
+                std::optional<typename std::decay<sub_output_type>::type>>::type
+                output_type;
 
             typedef successful<output_type, bare_input_type> type;
         };
@@ -88,7 +91,7 @@ namespace operation {
                 return sub_outcome;
             } else {
                 // Default-construct the output type, i.e. an empty
-                // boost::optional <...>, or a void.
+                // std::optional <...>, or a void.
                 return typename result<Policy, SubParser, Input>::type(input);
             }
         }

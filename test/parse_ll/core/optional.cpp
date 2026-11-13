@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(test_optional)
             auto parser = fuzz(-parse_ll::char_('a'));
             auto result = parse(parser, r);
             BOOST_CHECK(success(result));
-            BOOST_CHECK_EQUAL(output(result).get(), 'a');
+            BOOST_CHECK_EQUAL(*output(result), 'a');
         }
     }
 }

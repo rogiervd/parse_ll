@@ -16,8 +16,7 @@ Define a sequence parser, which parses two inputs after one another
 // For std::tuple
 #include <utility>
 
-#include <boost/optional.hpp>
-#include <boost/utility/typed_in_place_factory.hpp>
+#include <optional>
 
 namespace parse_ll {
 
@@ -112,9 +111,9 @@ struct sequence_outcome
         outcome_2_type;
     outcome_1_type outcome_1;
     // If success (outcome_1):
-    boost::optional<outcome_2_type> outcome_2;
+    std::optional<outcome_2_type> outcome_2;
     // If !success (outcome_1):
-    boost::optional<Input> input;
+    std::optional<Input> input;
 
 public:
     sequence_outcome(
@@ -123,8 +122,8 @@ public:
     : outcome_1(parse(policy, parser_1, input))
     {
         if (success(outcome_1)) {
-            // The in-place factory makes sure that operator= is not needed.
-            outcome_2 = boost::in_place<outcome_2_type, outcome_2_type>(parse(
+            // emplace makes sure that operator= is not needed.
+            outcome_2.emplace(parse(
                 policy, parser_2,
                 skip_over(policy.skip_parser(), rest(outcome_1))));
             // For an expect parser, outcome_2 must succeed if outcome_1 does.

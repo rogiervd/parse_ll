@@ -9,10 +9,10 @@ An outcome type that contains the output and the remaining input.
 #ifndef PARSE_LL_CORE_OUTCOME_EXPLICIT_HPP_INCLUDED
 #define PARSE_LL_CORE_OUTCOME_EXPLICIT_HPP_INCLUDED
 
+#include <optional>
 #include <type_traits>
 #include <utility>
 
-#include <boost/optional.hpp>
 
 #include "utility/returns.hpp"
 
@@ -32,7 +32,7 @@ Useful for eager parsers.
 template <class Output, class Input> struct explicit_outcome
 {
     typedef successful<Output, Input> successful_outcome;
-    boost::optional<successful_outcome> result;
+    std::optional<successful_outcome> result;
 
 public:
     /**
@@ -62,10 +62,9 @@ public:
     */
     template <class OtherOutcome> explicit_outcome(OtherOutcome && other)
     : result(
-          success(other)
-              ? boost::optional<successful_outcome>(
-                    successful_outcome(std::forward<OtherOutcome>(other)))
-              : boost::optional<successful_outcome>())
+          success(other) ? std::optional<successful_outcome>(successful_outcome(
+                               std::forward<OtherOutcome>(other)))
+                         : std::optional<successful_outcome>())
     {}
 
     // Specialisation of the above for the known-failed case.
@@ -94,13 +93,13 @@ namespace operation {
     {
         Output operator()(explicit_outcome<Output, Input> const & outcome) const
         {
-            return ::parse_ll::output(outcome.result.get());
+            return ::parse_ll::output(*outcome.result);
         }
 
         Output operator()(
             explicit_outcome<Output, Input> const && outcome) const
         {
-            return ::parse_ll::output(std::move(outcome.result.get()));
+            return ::parse_ll::output(std::move(*outcome.result));
         }
     };
     template <class Input> struct output<explicit_outcome<void, Input>>
@@ -113,11 +112,11 @@ namespace operation {
     {
         Input operator()(explicit_outcome<Output, Input> const & outcome) const
         {
-            return ::parse_ll::rest(outcome.result.get());
+            return ::parse_ll::rest(*outcome.result);
         }
         Input operator()(explicit_outcome<Output, Input> && outcome) const
         {
-            return ::parse_ll::rest(std::move(outcome.result.get()));
+            return ::parse_ll::rest(std::move(*outcome.result));
         }
     };
 

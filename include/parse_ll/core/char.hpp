@@ -9,7 +9,7 @@ Define a parser that parses one character.
 #ifndef PARSE_LL_CHAR_HPP_INCLUDED
 #define PARSE_LL_CHAR_HPP_INCLUDED
 
-#include <boost/optional.hpp>
+#include <optional>
 
 #include "range/core.hpp"
 
@@ -43,7 +43,7 @@ and the rest of the input as rest.
 */
 template <class Input> struct char_outcome
 {
-    boost::optional<Input> successful_input;
+    std::optional<Input> successful_input;
 
 public:
     char_outcome(failed) {}
@@ -86,14 +86,14 @@ namespace operation {
     template <class Input> struct output<char_outcome<Input>>
     {
         auto operator()(char_outcome<Input> const & outcome) const
-            RETURNS(::range::first(outcome.successful_input.get()));
+            RETURNS(::range::first(*outcome.successful_input));
     };
 
     template <class Input> struct rest<char_outcome<Input>>
     {
         Input operator()(char_outcome<Input> const & outcome) const
         {
-            return ::range::drop(outcome.successful_input.get());
+            return ::range::drop(*outcome.successful_input);
         }
     };
 

@@ -10,7 +10,7 @@ does not succeed.
 #ifndef PARSE_LL_DIFFERENCE_HPP_INCLUDED
 #define PARSE_LL_DIFFERENCE_HPP_INCLUDED
 
-#include <boost/optional.hpp>
+#include <optional>
 
 #include "core.hpp"
 #include "fwd.hpp"
@@ -46,7 +46,7 @@ struct difference_outcome
 {
     typedef typename detail::parser_outcome<Policy, Parser1, Input>::type
         outcome_1_type;
-    mutable boost::optional<outcome_1_type> outcome_1;
+    mutable std::optional<outcome_1_type> outcome_1;
 
 public:
     difference_outcome(
@@ -56,7 +56,7 @@ public:
         auto outcome_2 = parse(policy, parser_2, input);
         if (!success(outcome_2)) {
             // Try parser_1
-            outcome_1 = parse(policy, parser_1, input);
+            outcome_1.emplace(parse(policy, parser_1, input));
         }
         // Otherwise, leave outcome_1 empty.
     }
