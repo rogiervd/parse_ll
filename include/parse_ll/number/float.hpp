@@ -10,6 +10,7 @@ Define a floating-point parser.
 #define PARSE_LL_NUMBER_FLOAT_HPP_INCLUDED
 
 #include <cmath>
+#include <optional>
 
 #include "utility/returns.hpp"
 
@@ -59,13 +60,13 @@ template <typename Result> class convert_mantissa
 
 public:
     template <class Digits> std::tuple<Result, int> operator()(
-        std::tuple<Digits, boost::optional<std::tuple<Digits>> const &> const &
+        std::tuple<Digits, std::optional<std::tuple<Digits>> const &> const &
             data) const
     {
         Digits before_dot = std::get<0>(data);
         Result current = add_digits(Result(), before_dot);
         if (std::get<1>(data)) {
-            Digits after_dot = std::get<0>(std::get<1>(data).get());
+            Digits after_dot = std::get<0>(*std::get<1>(data));
             current = add_digits(current, after_dot);
             return std::tuple<Result, int>(
                 current, range::walk_size(after_dot));
@@ -86,12 +87,12 @@ public:
 struct extract_exponent
 {
     template <typename Int>
-    int operator()(boost::optional<std::tuple<Int>> const & data) const
+    int operator()(std::optional<std::tuple<Int>> const & data) const
     {
         if (!data) {
             return 0;
         } else {
-            return std::get<0>(data.get());
+            return std::get<0>(*data);
         }
     }
 };

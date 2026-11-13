@@ -29,7 +29,6 @@ cc_library(
     deps = [
         "@boost.exception",
         "@boost.mpl",
-        "@boost.optional",
         "@boost.spirit",
         "@boost.utility",
         "@boost.variant",

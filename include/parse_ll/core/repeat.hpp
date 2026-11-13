@@ -12,7 +12,6 @@ It outputs a sequence of sub-parser outputs.
 
 #include <cassert>
 
-#include <boost/optional.hpp>
 
 #include "range/core.hpp"
 
